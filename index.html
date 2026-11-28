@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>臺幣債券分析｜凱基證券金融市場部</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* 設計系統：UI UX Pro Max「Minimalism & Swiss Style」＋ Slate 色階，深色為預設；
+   字型 IBM Plex Sans（Financial Trust 組合，拉丁與數字，表格用等寬數字對齊）／Noto Sans TC（中文）；字級 12/13.5/15/18/22/30；
+   漲跌依台灣慣例紅漲綠跌，所以強調色用藍、不用綠。資料系列色沿用已驗證的色盤。 */
+:root{
+  color-scheme:dark;
+  --bg:#020617; --card:#0f172a; --card2:#131c31; --ink:#f8fafc; --ink2:#cbd5e1; --muted:#94a3b8;
+  --line:#1e293b; --line2:#334155; --head:#020617; --head-line:#1e293b;
+  --accent:#60a5fa; --accent-ink:#020617; --accent-soft:rgba(96,165,250,.12); --ring:#93c5fd;
+  --th:#131c31; --zebra:rgba(148,163,184,.04); --hover:rgba(96,165,250,.08);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --cmp:#475569; --up:#f87171; --down:#4ade80; --sub:#fbbf24; --sub-bg:rgba(251,191,36,.08);
+  --esg:#4ade80; --mkt-e:rgba(96,165,250,.14); --mkt-o:rgba(45,212,191,.14);
+  --warn-bg:rgba(251,191,36,.12); --warn-ink:#fde68a;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f1f5f9; --card:#ffffff; --card2:#f8fafc; --ink:#0f172a; --ink2:#334155; --muted:#556275;
+  --line:#e2e8f0; --line2:#cbd5e1; --head:#0f172a; --head-line:#1e293b;
+  --accent:#2563eb; --accent-ink:#ffffff; --accent-soft:#eff6ff; --ring:#2563eb;
+  --th:#f8fafc; --zebra:#fbfcfe; --hover:#eff6ff;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --cmp:#cbd5e1; --up:#dc2626; --down:#15803d; --sub:#a16207; --sub-bg:#fefce8;
+  --esg:#15803d; --mkt-e:#eff6ff; --mkt-o:#f0fdfa;
+  --warn-bg:#fef3c7; --warn-ink:#78350f;
+  --shadow:0 1px 2px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:130px}
+.skip{position:absolute;left:12px;top:-60px;z-index:50;background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:500}
+.skip:focus{top:12px}
+main:focus{outline:none}
+button,a,tr.click,th.s,select,input{touch-action:manipulation}
+#loading{padding:40px 0;text-align:center;color:var(--muted)}
+.empty{color:var(--muted);padding:14px 4px;margin:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "IBM Plex Sans","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.num,.kpi .v,td,dl.info dd{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum","lnum"}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+button,select,input,tr.click,th.s{transition:background-color .18s,border-color .18s,color .18s}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* 頁首 */
+header{background:var(--head);color:#f8fafc;border-bottom:1px solid var(--head-line);position:sticky;top:0;z-index:10}
+.hrow{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;align-items:center;max-width:1360px;margin:0 auto;padding:18px 24px 12px}
+.brand{display:flex;gap:16px;align-items:center}
+.logo{height:42px;width:auto;flex:none;display:block}
+.brand-div{width:1px;height:38px;background:#334155;flex:none}
+.internal{display:inline-block;vertical-align:3px;margin-left:8px;font-size:12.5px;font-weight:500;letter-spacing:.03em;color:#fde68a;border:1px solid rgba(253,230,138,.45);background:rgba(253,230,138,.08);border-radius:999px;padding:1px 10px}
+h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.08em;line-height:1.3}
+.hsub{color:#94a3b8;font-size:13px;margin-top:3px}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px}
+.ctrls label{display:flex;gap:6px;align-items:center;color:#94a3b8}
+.ctrls input,.ctrls select{font:inherit;height:38px;padding:0 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#f8fafc;color-scheme:dark}
+.ctrls input:hover,.ctrls select:hover{border-color:#475569}
+.btn{font:inherit;height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer}
+.btn:hover{border-color:#475569;background:#1e293b}
+.btn.icon{width:38px;padding:0;justify-content:center}
+.btn svg{width:16px;height:16px}
+nav{display:flex;gap:6px;overflow-x:auto;max-width:1360px;margin:0 auto;padding:0 24px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{font:inherit;font-size:15px;letter-spacing:.02em;background:none;border:0;color:#94a3b8;padding:12px 14px 13px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button:hover{color:#e2e8f0}
+nav button.on{color:#f8fafc;border-color:#60a5fa;font-weight:500}
+
+/* 版面 */
+main{max-width:1360px;margin:0 auto;padding:28px 24px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px;min-width:0;box-shadow:var(--shadow)}
+.card h2{font-size:18px;font-weight:600;letter-spacing:.02em;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+.card h2::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--accent)}
+.note{color:var(--muted);font-size:13.5px;margin:0 0 16px;line-height:1.7;max-width:110ch}
+p.note#period1{font-size:14px;color:var(--ink2);margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid2>.card{margin-bottom:0}.grid2{margin-bottom:20px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,var(--accent))}
+.kpi .l{color:var(--muted);font-size:13.5px;letter-spacing:.02em}
+.kpi .v{font-size:30px;font-weight:600;letter-spacing:-.01em;line-height:1.25;margin:4px 0 2px}
+.kpi .d{font-size:13px;color:var(--muted)}
+.kpi .spark{display:block;width:100%;height:30px;margin-top:8px}
+.xbtn{margin-left:auto;font:500 12.5px/1 inherit;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.xbtn:hover{color:var(--ink);border-color:var(--muted)}.xbtn svg{width:14px;height:14px}
+.quick{display:flex;flex-wrap:wrap;gap:6px}.quick button{font:inherit;font-size:13px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line2);background:var(--card2);color:var(--ink2);cursor:pointer}
+.quick button:hover{color:var(--ink);border-color:var(--muted)}
+.sub-h{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--ink2)}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+@media print{.xbtn,.quick{display:none}}
+
+/* 表格 */
+.tw{overflow-x:auto;max-width:100%;border-radius:8px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:14px}
+th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{background:var(--th);color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.02em;position:sticky;top:0;border-bottom:1px solid var(--line2)}
+th.s{cursor:pointer}th.s:hover{color:var(--ink)}
+td.l,th.l{text-align:left}
+tbody tr:nth-child(even){background:var(--zebra)}
+tbody tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer}tr.click:hover{background:var(--hover)}
+tr.sub td{background:var(--sub-bg)}
+tr.sub td:first-child{box-shadow:inset 3px 0 0 var(--sub)}
+tr.total td{font-weight:600;border-top:1px solid var(--line2);background:var(--card2)}
+tr.detail>td{background:var(--card2);padding:14px 18px;text-align:left}
+.up{color:var(--up)}.down{color:var(--down)}
+.tag{display:inline-block;font:500 12px/1.7 "IBM Plex Sans","Noto Sans TC",sans-serif;padding:0 8px;border-radius:999px;margin-left:6px;border:1px solid var(--line2);color:var(--ink2);vertical-align:1px}
+.tag.sub{border-color:var(--sub);color:var(--sub)}.tag.esg{border-color:var(--esg);color:var(--esg)}
+.tag.e,.tag.o{margin-left:0;border-color:transparent;color:var(--ink)}
+.tag.e{background:var(--mkt-e)}.tag.o{background:var(--mkt-o)}
+
+/* 控制項 */
+.chartbox{position:relative;height:340px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;margin:0 10px 16px 0;padding:4px;background:var(--card2);border:1px solid var(--line);border-radius:10px}
+.seg button{font:inherit;font-size:13.5px;min-height:32px;padding:0 14px;border-radius:7px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:500}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+.row input[type=text],.row select{font:inherit;height:40px;padding:0 12px;border:1px solid var(--line2);border-radius:8px;background:var(--card2);color:var(--ink);min-width:200px}
+.row input[type=text]:hover,.row select:hover{border-color:var(--muted)}
+.row label{display:flex;gap:6px;align-items:center;color:var(--ink2);cursor:pointer}
+.btn.ghost{background:var(--card2);border-color:var(--line2);color:var(--ink2);height:36px}
+.btn.ghost:hover{color:var(--ink);border-color:var(--muted)}
+.muted{color:var(--muted)}
+dl.info{display:grid;grid-template-columns:max-content 1fr;gap:8px 20px;margin:0;font-size:14.5px}
+dl.info dt{color:var(--muted)}dl.info dd{margin:0;font-family:inherit}
+#warn{display:none;background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 14px;margin-bottom:16px}
+footer{max-width:1360px;margin:0 auto;padding:4px 24px 36px;color:var(--muted);font-size:13px}
+
+@media (max-width:700px){
+  header{position:static}.hrow{padding:12px 14px 8px}nav{padding:0 10px}
+  main{padding:16px 14px}.card{padding:18px 16px}h1{font-size:19px}.kpi .v{font-size:26px}
+  html{scroll-padding-top:16px}
+  .logo{height:30px}.brand-div{display:none}.brand{flex-wrap:wrap}
+  .seg button{min-height:44px;padding:0 14px}.btn,.ctrls input,.ctrls select,.row input[type=text],.row select{height:44px}
+  .ctrls input,.ctrls select,.row input[type=text],.row select{font-size:16px}
+  nav{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+  nav button{padding:12px 12px 13px}
+}
+@media print{header nav,.ctrls,.seg{display:none}header{position:static}.tab{display:none!important}.tab.on{display:block!important}.card{break-inside:avoid;box-shadow:none}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+<header>
+  <div class="hrow">
+    <div class="brand">
+      <img class="logo" src="assets/kgi-logo-white.png" alt="凱基證券 KGI SECURITIES" width="151" height="38">
+      <div class="brand-div" aria-hidden="true"></div>
+      <div>
+        <h1>臺幣債券分析 <span class="internal">僅供金融市場部業務使用</span></h1>
+        <div class="hsub">資料來源：證券櫃檯買賣中心、公開資訊觀測站　<span id="upd"></span></div>
+      </div>
+    </div>
+    <div class="ctrls">
+      <label>資料日期 <input type="date" id="selDate"></label>
+      <label>歷史區間
+        <select id="selRange">
+          <option value="d1">當天</option><option value="d3">近 3 天</option><option value="d5">近 5 天</option>
+          <option value="m1">近 1 個月</option><option value="m3">近 3 個月</option><option value="m6">近 6 個月</option>
+          <option value="m12">近 1 年</option><option value="m36">近 3 年</option><option value="m60">近 5 年</option>
+          <option value="custom">自訂區間…</option>
+        </select>
+      </label>
+      <label id="customBox" style="display:none"><input type="date" id="dFrom"> 至 <input type="date" id="dTo"></label>
+      <button class="btn icon" id="bTheme" title="切換深淺色" aria-label="切換深淺色"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <label>列印 <select id="selOrient" aria-label="列印方向"><option value="portrait">A4 直向</option><option value="landscape">A4 橫向</option></select></label>
+      <button class="btn" id="bPrint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>列印 / PDF</button>
+    </div>
+  </div>
+  <nav id="nav" role="tablist" aria-label="分頁">
+    <button data-t="t1" class="on">總覽</button><button data-t="t2">公債</button><button data-t="t3">公司債/金融債</button><button data-t="t11">相對價值</button><button data-t="t9">附條件交易</button><button data-t="t10">初級市場</button>
+    <button data-t="t4">發行/到期</button><button data-t="t5">ESG</button><button data-t="t6">券商排名</button>
+    <button data-t="t7">成交明細</button><button data-t="t8">債券查詢</button>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+<div id="warn"></div>
+<p id="loading" role="status">資料載入中…（約 10 MB，第一次開啟需要幾秒）</p>
+
+<section class="tab on" id="panel-t1" role="tabpanel" aria-labelledby="tab-t1">
+  <p class="note" id="period1"></p>
+  <div class="kpis" id="kpi1"></div>
+  <div class="card"><h2>依債券種類與交易市場</h2><p class="note">成交面額單位：億元；殖利率為成交面額加權平均（%）；檔次＝債券×市場筆數。</p><div class="tw" id="tbType"></div></div>
+  <div class="card"><h2>指標公債</h2><p class="note">櫃買中心「指標利率行情表」。當日無成交時沿用最近成交日的殖利率（見「最近成交日」）。成交金額單位：億元。</p><div class="tw" id="tbBench"></div></div>
+  <div class="card"><h2>公債殖利率曲線</h2><p class="note">各年期指標公債平均殖利率，與約 1 週前、1 個月前比較；多日區間另加區間起始日。</p><div class="chartbox"><canvas id="cCurve"></canvas></div></div>
+  <div class="grid2">
+    <div class="card"><h2>成交面額最大的 10 檔</h2><p class="note">等殖＋處所合計，億元。年期＝剩餘年限（區間內最後成交日）。</p><div class="tw" id="tbTop"></div></div>
+    <div class="card"><h2>成交面額走勢</h2><p class="note" id="nTurn">依種類堆疊，億元。</p><div class="chartbox"><canvas id="cTurn"></canvas></div></div>
+  </div>
+</section>
+
+<section class="tab" id="panel-t2" role="tabpanel" aria-labelledby="tab-t2">
+  <div class="card"><h2>當日公債成交：指標券 vs 非指標券（依年期）</h2><p class="note" id="nGovDay">非指標央債依剩餘年限歸入最近年期：&lt;1.5 年→1 年、1.5–3.5→2、3.5–7.5→5、7.5–15→10、15–25→20、&gt;25→30（櫃買沒有 1 年期指標券）。點年期可展開明細。億元。</p><div class="tw" id="tbGovTenor"></div></div>
+  <div class="card" id="cardGovRange"><h2>區間內各年期指標券／非指標券統計</h2><p class="note" id="nGovRange"></p><div class="tw" id="tbGovRange"></div></div>
+  <div class="card"><h2>指標公債殖利率變動</h2><p class="note">以資料日的指標殖利率與各基準日比較，單位 bp；基準日遇非交易日取前一交易日。</p><div class="tw" id="tbBenchChg"></div></div>
+  <div class="card"><h2>指標券 vs 非指標券成交面額走勢</h2>
+    <div class="seg" id="segGovT"></div><div class="seg" id="segGovM"></div>
+    <div class="chartbox"><canvas id="cGovTurn"></canvas></div></div>
+  <div class="card"><h2>指標公債殖利率走勢（%）</h2><div class="seg" id="segBench"></div><div class="chartbox"><canvas id="cBench"></canvas></div></div>
+  <div class="card"><h2>殖利率曲線斜率</h2><p class="note">長短天期指標殖利率差，單位 bp。數值變大＝曲線變陡，變小或轉負＝曲線變平或倒掛。</p><div class="chartbox"><canvas id="cSlope"></canvas></div></div>
+  <div class="card"><h2>公債成交明細</h2><p class="note">依年期由短到長；同年期指標券在前，再依成交面額。點欄位標題可排序，點列看基本資料。</p><div class="tw" id="tbGovDetail"></div></div>
+</section>
+
+<section class="tab" id="panel-t3" role="tabpanel" aria-labelledby="tab-t3">
+  <p class="note" id="period3"></p>
+  <div class="kpis" id="kpi3"></div>
+  <div class="card"><h2>加權平均殖利率與利差</h2>
+    <p class="note">殖利率＝等殖＋處所成交面額加權（%）；利差＝處所行情表「與公債殖利率之差異點」成交面額加權（bp）。年期依成交時剩餘年限：1 年 &lt;1.5、2 年 1.5–2.5、3 年 2.5–4、5 年 4–6、7 年 6–8.5、10 年 8.5–12.5、15 年以上 ≥12.5。</p>
+    <div class="seg" id="segCbS"></div><div class="seg" id="segCbT"></div>
+    <div class="grid2"><div class="chartbox"><canvas id="cCbY"></canvas></div><div class="chartbox"><canvas id="cCbS"></canvas></div></div></div>
+  <div class="card"><h2>成交面額走勢</h2><div class="seg" id="segCbM"></div><div class="chartbox"><canvas id="cCbTurn"></canvas></div></div>
+  <div class="card"><h2>依信用評等之殖利率與利差</h2><p class="note">評等取「保證銀行評等」（有銀行保證者）→「債券評等」→「發行人評等」的第一個有值者，依字母等級分組（中華信評 twAA、惠譽 AA(twn) 皆歸 AA）。殖利率、利差為成交面額加權；利差只計處所成交。</p><div class="tw" id="tbRating"></div><div class="chartbox" style="margin-top:16px"><canvas id="cRating"></canvas></div></div>
+  <div class="card"><h2>區間內成交最活躍 20 檔</h2><p class="note">點列展開成交紀錄。億元。</p><div class="tw" id="tbCbTop"></div></div>
+  <div class="card"><h2>公司債/金融債成交明細</h2><p class="note">「債券評等」為債券本身評等；「發行人/保證人評等」：有銀行保證者為保證銀行評等，否則為發行人評等。次順位以底色標示。</p><div class="tw" id="tbCbDetail"></div></div>
+</section>
+
+<section class="tab" id="panel-t11" role="tabpanel" aria-labelledby="tab-t11">
+  <p class="note" id="period11"></p>
+  <div class="kpis" id="kpi11"></div>
+  <div class="card"><h2>櫃買零息殖利率曲線</h2><p class="note">櫃買中心以 Cubic B-Spline 模型擬合的公債零息（spot）殖利率曲線，與約 1 個月前比較；圓點為當天各年期指標公債殖利率。%。</p><div class="chartbox"><canvas id="cZCurve"></canvas></div></div>
+  <div class="card"><h2>公債：成交殖利率 vs 櫃買理論殖利率</h2><p class="note">偏離（bp）＝成交殖利率 − 櫃買理論殖利率（以零息曲線折現）。<b>正值＝殖利率高於理論＝價格相對便宜</b>；負值＝相對偏貴。成交殖利率為等殖＋處所面額加權。點列看這檔債券的偏離走勢。</p>
+    <div class="grid2"><div class="chartbox"><canvas id="cRvGov"></canvas></div><div class="tw" id="tbRvGov" style="max-height:340px"></div></div></div>
+  <div class="card"><h2>全部公債報價 vs 理論價（含當天沒有成交的券）</h2><p class="note" id="nFairGov">最新一天櫃買公債公平價格表：等殖系統最後最佳買／賣報價與理論殖利率。偏離＝報價中間殖利率 − 理論殖利率（bp），正值＝相對便宜。</p><div class="tw" id="tbFairGov" style="max-height:420px"></div></div>
+  <div class="card"><h2>公司債參考利率（依評等）</h2><p class="note">櫃買「公司債參考利率」：18 家交易商報價平均，依中華信評等級。%。表格為與公債零息曲線的利差（bp）。</p>
+    <div class="grid2"><div class="chartbox"><canvas id="cCoCurve"></canvas></div><div class="tw" id="tbCoCurve"></div></div></div>
+  <div class="card"><h2>公司債／金融債：相對同評等與公平價</h2><p class="note">「相對同評等」＝成交殖利率 − 同評等、同剩餘年期的公司債參考利率（依評等表內插，bp）；「相對公平價」＝成交殖利率 − Bloomberg 公平殖利率（2022 年起）。正值＝相對便宜。評等取保證銀行→債券→發行人評等。<b>次順位債（底色標示）的參考利率是一般順位，偏離包含次順位溢價，不代表真的便宜。</b>點列看偏離走勢。</p><div class="tw" id="tbRvCorp" style="max-height:480px"></div></div>
+  <div class="card" id="rvOne" style="display:none"><h2><span id="rvTitle"></span></h2><p class="note">每個成交日的偏離（bp），正值＝相對便宜。</p><div class="chartbox"><canvas id="cRvOne"></canvas></div></div>
+</section>
+
+<section class="tab" id="panel-t9" role="tabpanel" aria-labelledby="tab-t9">
+  <p class="note" id="period9"></p>
+  <div class="kpis" id="kpi9"></div>
+  <div class="card"><h2>附條件交易：依約定天數</h2><p class="note">櫃買「營業處所行情表（附條件）」新台幣部分。附買回（RP）＝交易商賣出債券並約定買回，等於向客戶借錢；附賣回（RS）＝交易商買入債券並約定賣回，等於借錢給對方。利率為年息（%），金額億元；多日區間為成交金額加權。</p><div class="tw" id="tbRepo"></div></div>
+  <div class="card"><h2>附條件利率走勢（%）</h2><p class="note">各天期加權平均利率；區間長時以每月成交金額加權。</p><div class="seg" id="segRepoT"></div><div class="chartbox"><canvas id="cRepoRate"></canvas></div></div>
+  <div class="card"><h2>附條件成交金額走勢</h2><p class="note" id="nRepoVol">新作附買回金額依天期堆疊，折線為新作附買回減到期，億元。</p><div class="chartbox"><canvas id="cRepoVol"></canvas></div></div>
+</section>
+
+<section class="tab" id="panel-t10" role="tabpanel" aria-labelledby="tab-t10">
+  <p class="note" id="period10"></p>
+  <div class="kpis" id="kpi10"></div>
+  <div class="card"><h2>即將標售的中央公債</h2><p class="note">「已公告」取自中央銀行標售公告；「季計畫」取自財政部各季中央公債發行明細表，實際日期以公告為準。金額億元。</p><div class="tw" id="tbUpcoming"></div></div>
+  <div class="card"><h2>中央公債標售結果</h2><p class="note">中央銀行「中央政府建設公債開標結果」新聞稿。利率為年息（%），金額億元；得標行業別為競標得標金額占比。點列看該次標售的公債。</p>
+    <div class="seg" id="segAucT"></div>
+    <div class="grid2"><div class="chartbox"><canvas id="cAucRate"></canvas></div><div class="chartbox"><canvas id="cAucCover"></canvas></div></div>
+    <div class="tw" id="tbAuction" style="margin-top:16px;max-height:520px"></div></div>
+  <div class="card"><h2>最近上櫃與即將上櫃的債券</h2><p class="note">櫃買「最近上櫃債券」，含尚未發行者；金額、票面、年期取自公開資訊觀測站。點列看基本資料。</p><div class="tw" id="tbListing"></div></div>
+  <div class="card"><h2>公債發行前交易</h2><p class="note">櫃買「公債發行前交易統計表」：債券自營商自該期公債發行前交易開始以來，在等殖系統與營業處所的累計買賣，以及各業別淨部位，億元。點列看每日明細。</p><div class="tw" id="tbWhenIssued"></div></div>
+</section>
+
+<section class="tab" id="panel-t4" role="tabpanel" aria-labelledby="tab-t4">
+  <div class="card"><h2>市場發行金額（過去 5 年）</h2><p class="note">櫃買「上櫃債券發行金額月報表」逐筆加總（增額發行計入當月；公債含地方政府債），億元。選單一種類時依原始年期拆分。</p><div class="seg" id="segIss"></div><div class="chartbox"><canvas id="cIss"></canvas></div><div class="tw" id="tbIss" style="margin-top:16px"></div><p class="hint">點年度列出當年發行的債券。</p><div id="outIssYear"></div></div>
+  <div class="card"><h2>市場到期金額（未來 5 年）</h2><p class="note" id="nMat"></p><div class="seg" id="segMat"></div><div class="chartbox"><canvas id="cMat"></canvas></div><div class="tw" id="tbMat" style="margin-top:16px"></div><p class="hint">點年度列出當年到期的債券。</p><div id="outMatYear"></div></div>
+  <div class="card"><h2>發行公司查詢</h2><p class="note">輸入公司名稱、股票代號或債券名稱關鍵字。顯示過去 5 年發行、未來 5 年到期（依原始年期），點年度列出債券。</p><div class="row"><input type="text" id="qIssuer" placeholder="例：台積電、2330、台電" aria-label="發行公司名稱、股票代號或債券名稱"><div class="quick" id="quickIssuer"></div></div><div id="outIssuer"></div></div>
+  <div class="grid2">
+    <div class="card"><h2>保證銀行查詢</h2><p class="note">流通在外、有銀行保證的公司債。</p><div class="row"><select id="qBank" aria-label="保證銀行"></select></div><div class="tw" id="outBank"></div></div>
+    <div class="card"><h2>流通在外餘額結構</h2><p class="note" id="nOut"></p><div class="tw" id="tbOut"></div></div>
+  </div>
+</section>
+
+<section class="tab" id="panel-t5" role="tabpanel" aria-labelledby="tab-t5">
+  <div class="card"><h2>ESG 債券：發行（過去 5 年）與到期（未來 5 年）</h2><p class="note">依櫃買「永續發展債券」清單，億元。</p><div class="seg" id="segEsg"></div>
+    <div class="grid2"><div class="chartbox"><canvas id="cEsgIss"></canvas></div><div class="chartbox"><canvas id="cEsgMat"></canvas></div></div><div class="grid2" style="margin-top:16px"><div class="tw" id="tbEsgIss"></div><div class="tw" id="tbEsgMat"></div></div><p class="hint">點年度列出債券。</p><div id="outEsgYear"></div></div>
+  <div class="card"><h2>各年度 ESG 債券五大發行人</h2><div class="row"><label><input type="checkbox" id="exLocal"> 排除地方政府債</label></div><div class="tw" id="tbEsgTop"></div></div>
+</section>
+
+<section class="tab" id="panel-t6" role="tabpanel" aria-labelledby="tab-t6">
+  <div class="card"><h2>券商買賣斷月排名</h2><p class="note">櫃買「債券營業金額月統計表（買賣斷排名）」，新台幣計價公債、公司債、金融債；買賣＝等殖＋處所＋遠期。買(賣)超＝買進－賣出，億元。點券商看月度走勢。</p>
+    <div class="row"><label>資料月份 <select id="selBkMonth" aria-label="資料月份"></select></label><label>查詢券商 <select id="selBroker" aria-label="查詢券商"></select></label></div><div class="grid2"><div class="tw" id="tbBkBuy"></div><div class="tw" id="tbBkSell"></div></div></div>
+  <div class="card" id="bkOne" style="display:none"><h2><span id="bkName"></span></h2><div class="seg" id="segBk"></div><div class="chartbox"><canvas id="cBk"></canvas></div><div class="tw" id="tbBkOne"></div></div>
+</section>
+
+<section class="tab" id="panel-t7" role="tabpanel" aria-labelledby="tab-t7">
+  <div class="card"><h2>成交明細／成交查詢</h2><p class="note">歷史區間選「當天」看單日；選多日區間可查詢整段期間的成交。可用關鍵字篩選代號、名稱、發行公司或股票代號。</p>
+    <div class="row"><input type="text" id="qDt" placeholder="關鍵字，例：台積、B618、2330" aria-label="成交明細關鍵字"></div>
+    <div class="row">
+      <div class="seg" id="segDtM"></div><div class="seg" id="segDtK"></div><div class="seg" id="segDtS"></div>
+      <button class="btn ghost" id="bCsv">匯出 CSV</button>
+    </div>
+    <p class="note" id="nDt"></p><div class="tw" id="tbDetail"></div></div>
+</section>
+
+<section class="tab" id="panel-t8" role="tabpanel" aria-labelledby="tab-t8">
+  <div class="card"><h2>債券查詢</h2><div class="row"><input type="text" id="qBond" placeholder="代號或名稱，例 A15105、台積" aria-label="債券代號或名稱" style="min-width:260px"></div><div id="outBondList"></div></div>
+  <div class="card" id="bondCard" style="display:none"><h2><span id="bondTitle"></span></h2><div class="grid2"><dl class="info" id="bondInfo"></dl><div class="chartbox"><canvas id="cBond"></canvas></div></div><div class="tw" id="tbBondHist" style="margin-top:12px;max-height:360px"></div></div>
+</section>
+</main>
+<footer>僅供凱基證券金融市場部業務使用，請勿對外轉載。資料由程式自動整理自證券櫃檯買賣中心與公開資訊觀測站之公開資料，僅供參考。</footer>
+
+<script src="data/meta.js"></script>
+<script>for (const y of TB_META.years) document.write(`<script src="data/daily_${y}.js"><\/script>`);</script>
+<script src="data/bonds.js"></script>
+<script src="data/broker.js"></script>
+<script src="data/primary.js" onerror="window.TB_PRIMARY={}"></script>
+<script src="data/fair.js" onerror="window.TB_FAIR={}"></script>
+<script>
+"use strict";
+document.getElementById("loading").remove();
+// ---------- 資料 ----------
+const DAYS = TB_DAYS, DIDX = Object.fromEntries(DAYS.map((d, i) => [d.d, i]));
+const BONDS = TB_BONDS.bonds, INFO = TB_BONDS.info, ESG = TB_BONDS.esg, AMORT = TB_BONDS.amort;
+const KIND = { G: "公債", C: "公司債", F: "金融債", X: "其他" };
+const kindOf = c => ({ A: "G", H: "G", B: "C", G: "F" })[c[0]] || "X";
+const E8 = 1e8, fmt = (v, d = 2) => v == null || isNaN(v) ? "–" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const yi = v => fmt(v / E8, 2);
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const S = () => [1, 2, 3, 4, 5, 6, 7, 8].map(i => css("--s" + i));
+
+// 每日成交展開成一筆一筆：m 市場 E/O
+function trades(day) {
+  const out = [];
+  for (const r of day.e) out.push({ d: day.d, m: "E", code: r[0], name: r[1], dy: r[2], y: r[3], p: r[4], val: r[5], face: r[6], chg: r[7], n: null, spr: null, fv: r[8] ?? null, k: kindOf(r[0]) });
+  for (const r of day.o) out.push({ d: day.d, m: "O", code: r[0], name: r[1], dy: r[2], y: r[3], p: r[4], val: r[5], face: r[6], chg: null, n: r[7], spr: r[8], fv: r[9] ?? null, k: kindOf(r[0]) });
+  return out;
+}
+const benchSet = day => new Set(day.b.map(r => r[1]));
+const wavg = (rows, f = r => r.y, w = r => r.face) => { let s = 0, t = 0; for (const r of rows) { const v = f(r); if (v != null && !isNaN(v)) { s += v * w(r); t += w(r); } } return t ? s / t : null; };
+const sum = (rows, f = r => r.face) => rows.reduce((a, r) => a + (f(r) || 0), 0);
+const groupBy = (rows, f) => { const m = new Map(); for (const r of rows) { const k = f(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); } return m; };
+const govTenor = dy => dy < 1.5 ? 1 : dy < 3.5 ? 2 : dy < 7.5 ? 5 : dy < 15 ? 10 : dy < 25 ? 20 : 30;
+const cbTenor = dy => dy < 1.5 ? "1年" : dy < 2.5 ? "2年" : dy < 4 ? "3年" : dy < 6 ? "5年" : dy < 8.5 ? "7年" : dy < 12.5 ? "10年" : "15年以上";
+const CB_T = ["1年", "2年", "3年", "5年", "7年", "10年", "15年以上"];
+
+// ---------- 標籤：次順位、銀保、ESG、評等 ----------
+const BANK = [["臺灣銀行", "台銀"], ["台灣銀行", "台銀"], ["土地銀行", "土銀"], ["合作金庫", "合庫"], ["第一商業", "一銀"], ["華南商業", "華銀"], ["彰化商業", "彰銀"], ["兆豐", "兆豐"], ["中小企業", "企銀"], ["台中商業", "台中銀"], ["上海商業", "上海"], ["台北富邦", "北富銀"], ["國泰世華", "國泰世華"], ["中國信託", "中信"], ["玉山", "玉山"], ["永豐", "永豐"], ["台新", "台新"], ["元大", "元大"], ["凱基", "凱基"], ["遠東國際", "遠銀"], ["星展", "星展"], ["京城", "京城"], ["板信", "板信"], ["聯邦", "聯邦"], ["陽信", "陽信"], ["安泰", "安泰"], ["華泰", "華泰"], ["高雄銀行", "高銀"], ["王道", "王道"], ["渣打", "渣打"], ["匯豐", "匯豐"], ["三信", "三信"], ["瑞興", "瑞興"]];
+const bankShort = n => { for (const [k, v] of BANK) if (n.includes(k)) return v; return n.replace(/股份有限公司|商業銀行|國際|銀行/g, "").slice(0, 3); };
+function labels(code) {
+  const i = INFO[code], t = [];
+  if (i && i.subordinated) t.push('<span class="tag sub">次順位</span>');
+  if (!i && kindOf(code) !== "G" && kindOf(code) !== "X") t.push('<span class="tag">順位未確認</span>');
+  if (i && i.bank_guaranteed) t.push(`<span class="tag">${bankShort(i.guarantor[0])}保</span>`);
+  if (ESG[code]) t.push(`<span class="tag esg">${ESG[code][0].replace("債券", "")}</span>`);
+  return t.join("");
+}
+const isSub = c => !!(INFO[c] && INFO[c].subordinated);
+const bondRating = c => (INFO[c] && INFO[c].bond_rating && INFO[c].bond_rating[1]) || "--";
+const partyRating = c => { const i = INFO[c]; if (!i) return "--"; if (i.bank_guaranteed) return (i.guarantor[2] || "--") + "（保）"; return (i.issuer_rating && i.issuer_rating[1]) || "--"; };
+
+// ---------- 日期與區間 ----------
+let curDate = DAYS[DAYS.length - 1].d, range = "d1";
+function rangeDays() {
+  const end = DIDX[curDate];
+  if (range === "custom") { const a = $("dFrom").value, b = $("dTo").value; return DAYS.filter(d => d.d >= a && d.d <= b); }
+  if (range[0] === "d") return DAYS.slice(Math.max(0, end - (+range.slice(1)) + 1), end + 1);
+  const dt = new Date(curDate); dt.setMonth(dt.getMonth() - (+range.slice(1)));
+  const from = dt.toISOString().slice(0, 10);
+  return DAYS.slice(0, end + 1).filter(d => d.d > from);
+}
+const nearestDay = s => { let lo = DAYS[0].d; for (const d of DAYS) { if (d.d <= s) lo = d.d; else break; } return lo; };
+const dayBefore = (s, n) => { const dt = new Date(s); dt.setDate(dt.getDate() - n); return DAYS[DIDX[nearestDay(dt.toISOString().slice(0, 10))]]; };
+
+// ---------- 表格 ----------
+// cols: [{k 標題, f 取值, h? 顯示 html, cls, sort 預設}] ; opt.click(row), opt.rowCls(row)
+// 滑鼠點擊與鍵盤 Enter／空白鍵都能觸發（給可點的表格列、可排序表頭用）
+function activate(el, fn) {
+  el.onclick = fn;
+  el.onkeydown = e => { if (e.target === el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fn(); } };
+}
+function table(el, cols, rows, opt = {}) {
+  const host = typeof el === "string" ? $(el) : el;
+  let sortI = opt.sortI ?? -1, dir = -1;
+  const draw = () => {
+    let rs = rows.slice();
+    if (sortI >= 0) { const f = cols[sortI].f; rs.sort((a, b) => { const x = f(a), y = f(b); return (x == null) - (y == null) || (x < y ? -1 : x > y ? 1 : 0) * dir; }); }
+    const sortAttr = i => opt.nosort ? "" : ` tabindex="0" aria-sort="${i === sortI ? (dir > 0 ? "ascending" : "descending") : "none"}"`;
+    const h = cols.map((c, i) => `<th class="${c.l ? "l" : ""} ${opt.nosort ? "" : "s"}" data-i="${i}"${sortAttr(i)}>${c.k}${i === sortI ? (dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("");
+    const b = rs.map((r, j) => `<tr data-j="${j}" class="${opt.click ? "click" : ""} ${opt.rowCls ? opt.rowCls(r) : ""}"${opt.click ? ' tabindex="0"' : ""}>${cols.map(c => `<td class="${c.l ? "l" : ""} ${c.cls ? c.cls(r) : ""}">${c.h ? c.h(r) : (c.f(r) ?? "–")}</td>`).join("")}</tr>`).join("");
+    const t = opt.total ? `<tr class="total">${cols.map(c => `<td class="${c.l ? "l" : ""}">${c.t ? c.t(rows) : ""}</td>`).join("")}</tr>` : "";
+    host.innerHTML = `<table><thead><tr>${h}</tr></thead><tbody>${b}${t}</tbody></table>${rs.length ? "" : '<p class="empty">這個區間沒有資料</p>'}`;
+    if (!opt.nosort) host.querySelectorAll("th").forEach(th => activate(th, () => { const i = +th.dataset.i; dir = sortI === i ? -dir : (cols[i].l ? 1 : -1); sortI = i; draw(); host.querySelector(`th[data-i="${i}"]`).focus(); }));
+    if (opt.click) host.querySelectorAll("tbody tr[data-j]").forEach(tr => activate(tr, () => opt.click(rs[+tr.dataset.j], tr)));
+  };
+  draw();
+}
+// 點列展開：在列下方插入一列明細
+function toggleDetail(tr, html) {
+  const nx = tr.nextElementSibling;
+  if (nx && nx.classList.contains("detail")) { nx.remove(); return; }
+  const d = document.createElement("tr"); d.className = "detail";
+  d.innerHTML = `<td colspan="${tr.children.length}">${html}</td>`; tr.after(d);
+}
+const chgCls = v => v > 0 ? "up" : v < 0 ? "down" : "";
+const chgTxt = (v, d = 2) => v == null ? "–" : (v > 0 ? "▲" : v < 0 ? "▼" : "") + fmt(Math.abs(v), d);
+const mktTag = m => m === "E" ? '<span class="tag e">等殖</span>' : '<span class="tag o">處所</span>';
+
+// 成交紀錄小表（展開用）
+function tradeTable(rows) {
+  const h = rows.slice().sort((a, b) => b.d.localeCompare(a.d) || b.face - a.face).map(r =>
+    `<tr><td class="l">${r.d}</td><td class="l">${mktTag(r.m)}</td><td class="l">${r.code} ${r.name}</td><td>${fmt(r.dy)}</td><td>${fmt(r.y, 4)}</td><td>${r.spr == null ? "–" : fmt(r.spr)}</td><td>${yi(r.face)}</td></tr>`).join("");
+  return `<div class="tw" style="max-height:300px"><table><thead><tr><th class="l">日期</th><th class="l">市場</th><th class="l">債券</th><th>剩餘年限</th><th>殖利率</th><th>利差</th><th>面額(億)</th></tr></thead><tbody>${h}</tbody></table></div>`;
+}
+
+// ---------- 圖表 ----------
+const charts = {};
+function chart(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  const ink2 = css("--muted"), line = css("--line");
+  cfg.options = Object.assign({ responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "index", intersect: false } }, cfg.options || {});
+  const o = cfg.options;
+  const tip = { backgroundColor: css("--card2"), borderColor: css("--line2"), borderWidth: 1, titleColor: css("--ink"), bodyColor: css("--ink2"), padding: 10, cornerRadius: 8, boxPadding: 4,
+    titleFont: { size: 13, weight: 600 }, bodyFont: { size: 13 } };
+  o.plugins = Object.assign({ legend: { labels: { color: css("--ink2"), boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: "rectRounded" } }, tooltip: tip }, o.plugins || {});
+  if (o.plugins.title) Object.assign(o.plugins.title, { color: css("--ink2"), font: { weight: 500 } });
+  o.scales = o.scales || {};
+  for (const k of ["x", "y"]) { o.scales[k] = Object.assign({ ticks: { color: ink2, maxRotation: 0, autoSkipPadding: 14 }, grid: { color: line, drawTicks: false }, border: { display: false } }, o.scales[k] || {}); }
+  o.scales.x.grid = { display: false };
+  for (const ds of cfg.data.datasets) {
+    if (cfg.type === "line" || ds.type === "line") Object.assign(ds, { borderWidth: 2, pointRadius: ds.pointRadius ?? 0, pointHoverRadius: 4, tension: 0, spanGaps: true }, { backgroundColor: ds.borderColor });
+    else Object.assign(ds, { borderRadius: 3, borderSkipped: "start", borderWidth: 0, maxBarThickness: 36 });
+  }
+  // 螢幕閱讀器描述：卡片標題＋系列＋期間；沒有資料時畫面上直接寫出來
+  const cv = $(id), card = cv.closest(".card"), labels = cfg.data.labels || [];
+  const empty = !cfg.data.datasets.some(d => d.data.some(v => v != null && v !== 0));
+  cv.setAttribute("role", "img");
+  cv.setAttribute("aria-label", empty ? `${card.querySelector("h2").textContent}：沒有資料` :
+    `${card.querySelector("h2").textContent}${o.plugins.title ? "－" + o.plugins.title.text : ""}，系列：${cfg.data.datasets.map(d => d.label).join("、")}，期間 ${labels[0] ?? ""} 至 ${labels[labels.length - 1] ?? ""}`);
+  cfg.plugins = [{ id: "empty", afterDraw: c => { if (!empty) return; const { ctx, chartArea: a } = c; ctx.save(); ctx.fillStyle = css("--muted"); ctx.font = '15px "IBM Plex Sans","Noto Sans TC",sans-serif'; ctx.textAlign = "center"; ctx.fillText("這個條件下沒有資料", (a.left + a.right) / 2, (a.top + a.bottom) / 2); ctx.restore(); } }];
+  charts[id] = new Chart(cv, cfg);
+}
+function seg(id, items, on, cb, multi = false) {
+  const host = $(id); let state = multi ? new Set(on) : on;
+  const draw = () => {
+    host.innerHTML = items.map(([v, t]) => { const on = multi ? state.has(v) : state === v; return `<button type="button" data-v="${v}" class="${on ? "on" : ""}" aria-pressed="${on}">${t}</button>`; }).join("");
+    host.querySelectorAll("button").forEach(b => b.onclick = () => {
+      const v = b.dataset.v;
+      if (multi) { if (v === "all") state = new Set(items.map(i => i[0]).filter(x => x !== "all")); else state.has(v) ? state.delete(v) : state.add(v); }
+      else state = v;
+      draw(); cb(state);
+    });
+  };
+  draw(); return () => state;
+}
+// 區間長時改用月資料
+const monthly = days => days.length > 70;
+function bucketDays(days) {
+  if (!monthly(days)) return days.map(d => [d.d, [d]]);
+  return [...groupBy(days, d => d.d.slice(0, 7))];
+}
+
+// 迷你走勢線（SVG）：最後一點加圓點；裝飾用，數值在卡片上
+function spark(vals, colorVar) {
+  const v = vals.map(x => x ?? NaN), ok = v.filter(x => !isNaN(x));
+  if (ok.length < 2) return "";
+  const lo = Math.min(...ok), hi = Math.max(...ok), W = 200, H = 30, P = 3;
+  const xy = v.map((y, i) => isNaN(y) ? null : [P + i * (W - 2 * P) / (v.length - 1), H - P - (hi > lo ? (y - lo) / (hi - lo) : .5) * (H - 2 * P)]);
+  const pts = xy.filter(Boolean), e = pts[pts.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="var(${colorVar})" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" opacity=".9"/>
+    <circle cx="${e[0]}" cy="${e[1]}" r="2.4" fill="var(${colorVar})"/></svg>`;
+}
+
+// ---------- 1 總覽 ----------
+function renderOverview() {
+  const days = rangeDays(), rows = days.flatMap(trades), last = days[days.length - 1] || DAYS[DIDX[curDate]];
+  $("period1").textContent = days.length > 1 ? `區間：${days[0].d} ～ ${last.d}，共 ${days.length} 個交易日` : `資料日期：${last.d}`;
+  const by = k => rows.filter(r => r.k === k), b10 = last.b.find(r => r[0] === 10);
+  // KPI 小走勢：到資料日為止近 22 個交易日
+  const recent = DAYS.slice(Math.max(0, DIDX[last.d] - 21), DIDX[last.d] + 1), rt = recent.map(trades);
+  const sprOf = a => wavg(a.filter(r => isCb(r) && r.spr != null), r => r.spr);
+  const kpiSeries = [rt.map(a => sum(a)), ...["G", "C", "F"].map(k => rt.map(a => sum(a.filter(r => r.k === k)))),
+    recent.map(d => (d.b.find(r => r[0] === 10) || [])[2] ?? null), rt.map(sprOf)];
+  const cbSpr = sprOf(rows);
+  $("kpi1").innerHTML = [["總成交面額", yi(sum(rows)), "億元"], ["公債", yi(sum(by("G"))), "億元"], ["公司債", yi(sum(by("C"))), "億元"], ["金融債", yi(sum(by("F"))), "億元"],
+    ["10 年指標殖利率", b10 ? fmt(b10[2], 4) + "%" : "–", b10 ? `${b10[1]}（${chgTxt(b10[3])} bp）` : ""],
+    ["公司債/金融債利差", cbSpr == null ? "–" : fmt(cbSpr, 1), "bp，處所成交加權"]]
+    .map(([l, v, d], i) => { const kc = ["--accent", "--s1", "--s2", "--s3", "--s7", "--s4"][i];
+      return `<div class="kpi" style="--kc:var(${kc})"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div>${spark(kpiSeries[i], kc)}</div>`; }).join("");
+  const tyRows = ["G", "C", "F", "X"].map(k => { const a = by(k); return { k, e: a.filter(r => r.m === "E"), o: a.filter(r => r.m === "O"), a }; }).filter(r => r.a.length);
+  table("tbType", [{ k: "種類", l: 1, f: r => KIND[r.k], t: () => "合計" },
+    { k: "等殖面額", f: r => sum(r.e), h: r => yi(sum(r.e)), t: () => yi(sum(rows.filter(r => r.m === "E"))) },
+    { k: "等殖殖利率", f: r => wavg(r.e), h: r => fmt(wavg(r.e), 4) },
+    { k: "處所面額", f: r => sum(r.o), h: r => yi(sum(r.o)), t: () => yi(sum(rows.filter(r => r.m === "O"))) },
+    { k: "處所殖利率", f: r => wavg(r.o), h: r => fmt(wavg(r.o), 4) },
+    { k: "合計面額", f: r => sum(r.a), h: r => yi(sum(r.a)), t: () => yi(sum(rows)) },
+    { k: "檔次", f: r => r.a.length, t: () => rows.length }], tyRows, { total: 1, nosort: 1 });
+  table("tbBench", [{ k: "年期", f: r => r[0] + " 年" }, { k: "指標券", l: 1, f: r => r[1] }, { k: "殖利率(%)", f: r => r[2], h: r => fmt(r[2], 4) },
+    { k: "漲跌(bp)", f: r => r[3], h: r => chgTxt(r[3]), cls: r => chgCls(r[3]) }, { k: "成交金額", f: r => r[4], h: r => yi(r[4]) }, { k: "最近成交日", f: r => r[5], cls: r => r[5] !== last.d ? "muted" : "" }], last.b, { nosort: 1 });
+  // 殖利率曲線
+  const curves = [[last, "當日", css("--s1")], [dayBefore(last.d, 7), "約 1 週前", css("--s3")], [dayBefore(last.d, 30), "約 1 個月前", css("--s7")]];
+  if (days.length > 1) curves.push([days[0], "區間起始", css("--s2")]);
+  chart("cCurve", { type: "line", data: { labels: [2, 5, 10, 20, 30].map(t => t + "年"), datasets: curves.map(([d, n, c], i) => ({ label: `${n}（${d.d}）`, data: [2, 5, 10, 20, 30].map(t => (d.b.find(r => r[0] === t) || [])[2] ?? null), borderColor: c, pointRadius: 4,
+      borderDash: i ? [6, 4] : [], pointStyle: ["circle", "rect", "triangle", "rectRot"][i] })) },
+    options: { scales: { y: { title: { display: true, text: "%", color: css("--ink2") } } } } });
+  // 前 10 大
+  const agg = [...groupBy(rows, r => r.code)].map(([code, rs]) => ({ code, name: rs[0].name, k: rs[0].k, face: sum(rs), y: wavg(rs), dy: rs.reduce((a, r) => r.d >= a.d ? r : a).dy, rs }));
+  table("tbTop", [{ k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${r.name}${labels(r.code)}` }, { k: "種類", l: 1, f: r => KIND[r.k] }, { k: "年期", f: r => r.dy, h: r => fmt(r.dy) },
+    { k: "殖利率", f: r => r.y, h: r => fmt(r.y, 4) }, { k: "面額", f: r => r.face, h: r => yi(r.face) }], agg.sort((a, b) => b.face - a.face).slice(0, 10),
+    { nosort: 1, click: (r, tr) => toggleDetail(tr, tradeTable(r.rs)) });
+  // 成交面額走勢
+  const bk = bucketDays(days.length > 1 ? days : DAYS.slice(Math.max(0, DIDX[last.d] - 21), DIDX[last.d] + 1));
+  $("nTurn").textContent = `依種類堆疊，億元；${monthly(days) ? "每月合計" : "每日"}。${days.length > 1 ? "" : "（當天模式顯示近 22 個交易日）"}`;
+  const s = S();
+  chart("cTurn", { type: "bar", data: { labels: bk.map(b => b[0]), datasets: ["G", "C", "F"].map((k, i) => ({ label: KIND[k], data: bk.map(([, ds]) => sum(ds.flatMap(trades).filter(r => r.k === k)) / E8), backgroundColor: s[i] })) },
+    options: { scales: { x: { stacked: true }, y: { stacked: true } } } });
+}
+
+// ---------- 2 公債 ----------
+let govT = "all", govM = "all", benchSel = new Set(["2", "5", "10", "20", "30"]);
+function govRows(days) {
+  const out = [];
+  for (const d of days) { const bs = benchSet(d); for (const r of trades(d)) if (r.k === "G" && r.code[0] === "A") { r.bench = bs.has(r.code); r.t = r.bench ? (d.b.find(b => b[1] === r.code) || [govTenor(r.dy)])[0] : govTenor(r.dy); out.push(r); } }
+  return out;
+}
+function govTenorTable(id, rows) {
+  const tenors = [1, 2, 5, 10, 20, 30].map(t => { const a = rows.filter(r => r.t === t); return { t, a, b: a.filter(r => r.bench), n: a.filter(r => !r.bench) }; });
+  table(id, [{ k: "年期", f: r => r.t, h: r => `<b>${r.t} 年</b>`, t: () => "合計" }, { k: "指標券面額", f: r => sum(r.b), h: r => yi(sum(r.b)), t: () => yi(sum(rows.filter(r => r.bench))) },
+    { k: "指標券殖利率", f: r => wavg(r.b), h: r => fmt(wavg(r.b), 4) }, { k: "非指標券面額", f: r => sum(r.n), h: r => yi(sum(r.n)), t: () => yi(sum(rows.filter(r => !r.bench))) },
+    { k: "非指標券殖利率", f: r => wavg(r.n), h: r => fmt(wavg(r.n), 4) }, { k: "合計", f: r => sum(r.a), h: r => yi(sum(r.a)), t: () => yi(sum(rows)) },
+    { k: "指標券占比", f: r => sum(r.a) ? sum(r.b) / sum(r.a) : null, h: r => sum(r.a) ? fmt(100 * sum(r.b) / sum(r.a), 1) + "%" : "–" }], tenors,
+    { nosort: 1, total: 1, click: (r, tr) => r.a.length && toggleDetail(tr, tradeTable(r.a)) });
+}
+function renderGov() {
+  const days = rangeDays(), last = days[days.length - 1];
+  const det = govRows([last]);
+  govTenorTable("tbGovTenor", det);
+  $("cardGovRange").style.display = days.length > 1 ? "" : "none";
+  if (days.length > 1) { $("nGovRange").textContent = `${days[0].d} ～ ${last.d}，共 ${days.length} 個交易日。點年期可展開明細。億元。`; govTenorTable("tbGovRange", govRows(days)); }
+  benchChange(last);
+  drawGovTurn();
+  drawBench();
+  drawSlope();
+  table("tbGovDetail", [{ k: "市場", l: 1, f: r => r.m, h: r => mktTag(r.m) }, { k: "年期", f: r => r.t }, { k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${r.name}${r.bench ? '<span class="tag">指標</span>' : ""}` },
+    { k: "剩餘年限", f: r => r.dy, h: r => fmt(r.dy) }, { k: "殖利率", f: r => r.y, h: r => fmt(r.y, 4) }, { k: "漲跌", f: r => r.chg, h: r => chgTxt(r.chg, 4), cls: r => chgCls(r.chg) },
+    { k: "百元價", f: r => r.p, h: r => fmt(r.p, 4) }, { k: "面額(億)", f: r => r.face, h: r => yi(r.face) }],
+    det.sort((a, b) => a.m.localeCompare(b.m) || a.t - b.t || b.bench - a.bench || b.face - a.face), { click: r => showBond(r.code) });
+}
+function drawGovTurn() {
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 59), DIDX[curDate] + 1);
+  const bk = bucketDays(days), s = S();
+  const pick = r => (govT === "all" || r.t === +govT) && (govM === "all" || r.m === govM);
+  const series = bk.map(([, ds]) => govRows(ds).filter(pick));
+  chart("cGovTurn", { type: "bar", data: { labels: bk.map(b => b[0]), datasets: [{ label: "指標券", data: series.map(a => sum(a.filter(r => r.bench)) / E8), backgroundColor: s[0] }, { label: "非指標券", data: series.map(a => sum(a.filter(r => !r.bench)) / E8), backgroundColor: css("--cmp") }] },
+    options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "億元", color: css("--ink2") } } } } });
+}
+// 指標殖利率變動：當日 vs 前一交易日、約 1 週、1 個月、3 個月、年初、1 年
+function benchChange(last) {
+  const i = DIDX[last.d], y0 = DAYS[DIDX[nearestDay(last.d.slice(0, 4) - 1 + "-12-31")]];
+  const refs = [["前一交易日", DAYS[Math.max(0, i - 1)]], ["1 週", dayBefore(last.d, 7)], ["1 個月", dayBefore(last.d, 30)], ["3 個月", dayBefore(last.d, 91)], ["今年以來", y0], ["1 年", dayBefore(last.d, 365)]];
+  const yOf = (d, t) => (d.b.find(r => r[0] === t) || [])[2];
+  const rows = [2, 5, 10, 20, 30].map(t => ({ t, y: yOf(last, t), c: refs.map(([, d]) => { const a = yOf(last, t), b = yOf(d, t); return a == null || b == null ? null : (a - b) * 100; }) }));
+  table("tbBenchChg", [{ k: "年期", f: r => r.t + " 年" }, { k: "殖利率(%)", f: r => r.y, h: r => fmt(r.y, 4) },
+    ...refs.map(([n, d], j) => ({ k: `${n}<br><span class="muted" style="font-weight:400">${d.d}</span>`, f: r => r.c[j], h: r => chgTxt(r.c[j], 1), cls: r => chgCls(r.c[j]) }))], rows, { nosort: 1 });
+}
+function drawSlope() {
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 250), DIDX[curDate] + 1), s = S();
+  const yOf = (d, t) => (d.b.find(r => r[0] === t) || [])[2];
+  const sp = (a, b) => days.map(d => { const x = yOf(d, a), y = yOf(d, b); return x == null || y == null ? null : +((x - y) * 100).toFixed(1); });
+  chart("cSlope", { type: "line", data: { labels: days.map(d => d.d), datasets: [{ label: "10年 − 2年", borderColor: s[0], data: sp(10, 2) }, { label: "30年 − 10年", borderColor: s[1], data: sp(30, 10) }, { label: "30年 − 2年", borderColor: s[2], data: sp(30, 2), borderDash: [6, 4] }] },
+    options: { scales: { y: { title: { display: true, text: "bp", color: css("--ink2") } } } } });
+}
+function drawBench() {
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 250), DIDX[curDate] + 1), s = S();
+  chart("cBench", { type: "line", data: { labels: days.map(d => d.d), datasets: ["2", "5", "10", "20", "30"].filter(t => benchSel.has(t)).map(t => ({ label: t + " 年", borderColor: s[["2", "5", "10", "20", "30"].indexOf(t)], data: days.map(d => (d.b.find(r => r[0] === +t) || [])[2] ?? null) })) } });
+}
+
+// ---------- 3 公司債/金融債 ----------
+let cbSeries = new Set(["C", "F"]), cbT = "all", cbM = "all";
+const isCb = r => r.k === "C" || r.k === "F";
+// 有效評等：保證銀行 → 債券 → 發行人；回傳字母等級
+function effRating(c) {
+  const i = INFO[c]; if (!i) return null;
+  const g = (i.bank_guaranteed && i.guarantor[2]) || (i.bond_rating && i.bond_rating[1]) || (i.issuer_rating && i.issuer_rating[1]) || "";
+  const m = g.replace(/^tw/i, "").replace(/\(twn\)/i, "").match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)/i);
+  return m ? m[1].toUpperCase() : null;
+}
+const RB = ["AAA", "AA", "A", "BBB 以下", "無評等"];
+const ratingBucket = c => { const r = effRating(c); return !r ? "無評等" : ["AAA", "AA", "A"].includes(r) ? r : "BBB 以下"; };
+function renderCb() {
+  const days = rangeDays(), rows = days.flatMap(trades).filter(isCb), lastD = days[days.length - 1];
+  $("period3").textContent = days.length > 1 ? `區間：${days[0].d} ～ ${lastD.d}，共 ${days.length} 個交易日` : `資料日期：${lastD.d}`;
+  const subF = sum(rows.filter(r => isSub(r.code))), spr = wavg(rows.filter(r => r.spr != null), r => r.spr);
+  $("kpi3").innerHTML = [["公司債面額", yi(sum(rows.filter(r => r.k === "C"))), "億元", "--s3"], ["金融債面額", yi(sum(rows.filter(r => r.k === "F"))), "億元", "--s7"],
+    ["加權殖利率", rows.length ? fmt(wavg(rows), 4) + "%" : "–", "等殖＋處所", "--s1"], ["加權利差", spr == null ? "–" : fmt(spr, 1), "bp，處所成交", "--s4"],
+    ["成交檔數", new Set(rows.map(r => r.code)).size, `${rows.length} 筆成交`, "--accent"], ["次順位占比", sum(rows) ? fmt(100 * subF / sum(rows), 1) + "%" : "–", `面額 ${yi(subF)} 億元`, "--sub"]]
+    .map(([l, v, d, kc]) => `<div class="kpi" style="--kc:var(${kc})"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+  renderRating(rows);
+  drawCbTrend(); drawCbTurn();
+  const agg = [...groupBy(rows, r => r.code)].map(([code, rs]) => ({ code, name: rs[0].name, k: rs[0].k, face: sum(rs), n: rs.length, y: wavg(rs), spr: wavg(rs.filter(r => r.spr != null), r => r.spr), rs }));
+  table("tbCbTop", [{ k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${r.name}${labels(r.code)}` }, { k: "種類", l: 1, f: r => KIND[r.k] }, { k: "成交日數", f: r => new Set(r.rs.map(x => x.d)).size },
+    { k: "殖利率", f: r => r.y, h: r => fmt(r.y, 4) }, { k: "利差(bp)", f: r => r.spr, h: r => fmt(r.spr) }, { k: "面額(億)", f: r => r.face, h: r => yi(r.face) }],
+    agg.sort((a, b) => b.face - a.face).slice(0, 20), { nosort: 1, click: (r, tr) => toggleDetail(tr, tradeTable(r.rs)) });
+  const last = days[days.length - 1], det = trades(last).filter(isCb);
+  table("tbCbDetail", [{ k: "市場", l: 1, f: r => r.m, h: r => mktTag(r.m) }, { k: "種類", l: 1, f: r => KIND[r.k] }, { k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${r.name}${labels(r.code)}` },
+    { k: "剩餘年限", f: r => r.dy, h: r => fmt(r.dy) }, { k: "殖利率", f: r => r.y, h: r => fmt(r.y, 4) }, { k: "利差(bp)", f: r => r.spr, h: r => fmt(r.spr) },
+    { k: "債券評等", l: 1, f: r => bondRating(r.code) }, { k: "發行人/保證人評等", l: 1, f: r => partyRating(r.code) }, { k: "面額(億)", f: r => r.face, h: r => yi(r.face) }],
+    det.sort((a, b) => a.dy - b.dy), { rowCls: r => isSub(r.code) ? "sub" : "", click: r => showBond(r.code) });
+}
+function renderRating(rows) {
+  const g = RB.map(b => { const a = rows.filter(r => ratingBucket(r.code) === b); return { b, a, o: a.filter(r => r.spr != null) }; });
+  table("tbRating", [{ k: "評等", l: 1, f: r => r.b, t: () => "合計" }, { k: "檔數", f: r => new Set(r.a.map(x => x.code)).size, t: () => new Set(rows.map(x => x.code)).size },
+    { k: "面額(億)", f: r => sum(r.a), h: r => yi(sum(r.a)), t: () => yi(sum(rows)) }, { k: "加權殖利率", f: r => wavg(r.a), h: r => fmt(wavg(r.a), 4) },
+    { k: "加權利差(bp)", f: r => wavg(r.o, x => x.spr), h: r => fmt(wavg(r.o, x => x.spr), 1) }, { k: "平均剩餘年限", f: r => wavg(r.a, x => x.dy), h: r => fmt(wavg(r.a, x => x.dy), 2) }],
+    g, { nosort: 1, total: 1, click: (r, tr) => r.a.length && toggleDetail(tr, tradeTable(r.a)) });
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 250), DIDX[curDate] + 1);
+  const bk = [...groupBy(days, d => d.d.slice(0, 7))], s = S();
+  chart("cRating", { type: "line", data: { labels: bk.map(b => b[0]), datasets: RB.slice(0, 4).map((b, i) => ({ label: b, borderColor: s[i], pointRadius: 2,
+      data: bk.map(([, ds]) => { const v = wavg(ds.flatMap(trades).filter(r => isCb(r) && r.spr != null && ratingBucket(r.code) === b), r => r.spr); return v == null ? null : +v.toFixed(1); }) })) },
+    options: { plugins: { title: { display: true, text: "各評等每月加權利差（bp）" } } } });
+}
+function drawCbTrend() {
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 250), DIDX[curDate] + 1);
+  const bk = [...groupBy(days, d => monthly(days) ? d.d.slice(0, 7) : d.d)], s = S();
+  const pick = (r, k) => r.k === k && (cbT === "all" || cbTenor(r.dy) === cbT);
+  const ys = [], ss = [];
+  for (const k of ["C", "F"]) if (cbSeries.has(k)) ys.push({ label: KIND[k], borderColor: k === "C" ? s[2] : s[6], data: bk.map(([, ds]) => wavg(ds.flatMap(trades).filter(r => pick(r, k)))) });
+  const sk = ["C", "F"].filter(k => cbSeries.has(k));
+  if (sk.length) ss.push({ label: sk.length === 2 ? "公司債＋金融債" : KIND[sk[0]], borderColor: s[1], data: bk.map(([, ds]) => wavg(ds.flatMap(trades).filter(r => sk.some(k => pick(r, k)) && r.spr != null), r => r.spr)) });
+  chart("cCbY", { type: "line", data: { labels: bk.map(b => b[0]), datasets: ys }, options: { plugins: { title: { display: true, text: "加權平均殖利率（%）", color: css("--ink2") } } } });
+  chart("cCbS", { type: "line", data: { labels: bk.map(b => b[0]), datasets: ss }, options: { plugins: { title: { display: true, text: "加權平均利差（bp）", color: css("--ink2") } } } });
+}
+function drawCbTurn() {
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 59), DIDX[curDate] + 1);
+  const bk = bucketDays(days), s = S();
+  chart("cCbTurn", { type: "bar", data: { labels: bk.map(b => b[0]), datasets: [["C", s[2]], ["F", s[6]]].map(([k, c]) => ({ label: KIND[k], backgroundColor: c, data: bk.map(([, ds]) => sum(ds.flatMap(trades).filter(r => r.k === k && (cbM === "all" || r.m === cbM))) / E8) })) },
+    options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "億元", color: css("--ink2") } } } } });
+}
+
+// ---------- 11 相對價值 ----------
+const ZT = TB_META.zt || [], CT = TB_META.ct || [], FAIR = window.TB_FAIR || {};
+const RT = ["twAAA", "twAA", "twA", "twBBB"];
+// 線性內插：xs 遞增
+const interp = (xs, ys, x) => { const pts = xs.map((v, i) => [v, ys[i]]).filter(p => p[1] != null); if (!pts.length || x == null) return null;
+  if (x <= pts[0][0]) return pts[0][1]; for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) { const [a, ya] = pts[i - 1], [b, yb] = pts[i]; return ya + (yb - ya) * (x - a) / (b - a); } return pts[pts.length - 1][1]; };
+const ratingCurve = c => { const r = effRating(c); return r === "AAA" ? "twAAA" : r === "AA" ? "twAA" : r === "A" ? "twA" : r ? "twBBB" : null; };
+// 同一天同一檔：等殖＋處所面額加權
+const byBond = rows => [...groupBy(rows, r => r.code)].map(([code, rs]) => ({ code, name: rs[0].name, k: rs[0].k, d: rs[0].d, dy: wavg(rs, r => r.dy), y: wavg(rs), fv: rs.find(r => r.fv != null)?.fv ?? null, face: sum(rs), rs }));
+const dev = (a, b) => a == null || b == null ? null : +((a - b) * 100).toFixed(1);
+const devTag = v => v == null ? "–" : `<span class="${v > 0 ? "down" : v < 0 ? "up" : ""}">${v > 0 ? "便宜 " : v < 0 ? "偏貴 " : ""}${v > 0 ? "+" : ""}${fmt(v, 1)}</span>`;
+let rvCode = null;
+function renderRV() {
+  const last = DAYS[DIDX[curDate]], s = S();
+  $("period11").textContent = `資料日期：${last.d}（相對價值以單日計算；歷史區間用於下方走勢圖）`;
+  const gov = byBond(trades(last).filter(r => r.k === "G" && r.code[0] === "A")).map(b => ({ ...b, dv: dev(b.y, b.fv) }));
+  const corp = byBond(trades(last).filter(isCb)).map(b => {
+    const rc = ratingCurve(b.code), ref = rc && last.c && last.c[rc] ? interp(CT, last.c[rc], b.dy) : null;
+    return { ...b, rc, ref, dvRef: dev(b.y, ref), dvFv: dev(b.y, b.fv) };
+  });
+  const gd = gov.filter(b => b.dv != null), cheap = gd.slice().sort((a, b) => b.dv - a.dv)[0], rich = gd.slice().sort((a, b) => a.dv - b.dv)[0];
+  const cd = corp.filter(b => b.dvRef != null && !isSub(b.code));  // 次順位本來就比一般順位利率高，不列入平均
+  $("kpi11").innerHTML = [["公債平均偏離", gd.length ? fmt(wavg(gd, b => b.dv), 1) : "–", `bp，${gd.length} 檔有理論價`, "--s1"],
+    ["最便宜公債", cheap ? "+" + fmt(cheap.dv, 1) : "–", cheap ? `${cheap.code} ${cheap.name}` : "", "--s3"],
+    ["最貴公債", rich && rich.dv < 0 ? fmt(rich.dv, 1) : "–", rich && rich.dv < 0 ? `${rich.code} ${rich.name}` : "今天沒有低於理論殖利率的成交", "--s2"],
+    ["公司債相對同評等", cd.length ? fmt(wavg(cd, b => b.dvRef), 1) : "–", `bp，面額加權，${cd.length} 檔（不含次順位）`, "--s7"],
+    ["10年 − 2年（零息）", last.z && last.z.length ? fmt((interp(ZT, last.z, 10) - interp(ZT, last.z, 2)) * 100, 1) : "–", "bp，櫃買零息曲線", "--accent"]]
+    .map(([l, v, d, kc]) => `<div class="kpi" style="--kc:var(${kc})"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+  // 零息曲線
+  const m1 = dayBefore(last.d, 30), bx = [2, 5, 10, 20, 30];
+  chart("cZCurve", { type: "line", data: { labels: ZT.map(t => t < 1 ? Math.round(t * 12) + "個月" : t + "年"), datasets: [
+      { label: `零息曲線（${last.d}）`, borderColor: s[0], data: last.z || [], pointRadius: 2 },
+      { label: `零息曲線（${m1.d}）`, borderColor: s[2], data: m1.z || [], borderDash: [6, 4], pointRadius: 0 },
+      { label: "指標公債殖利率", borderColor: s[1], showLine: false, pointRadius: 5, pointStyle: "rectRot", data: ZT.map(t => bx.includes(t) ? ((last.b.find(r => r[0] === t) || [])[2] ?? null) : null) }] },
+    options: { scales: { y: { title: { display: true, text: "%", color: css("--ink2") } } } } });
+  // 公債偏離散佈＋表
+  chart("cRvGov", { type: "scatter", data: { datasets: [{ label: "偏離（bp）", borderColor: s[0], backgroundColor: s[0], pointRadius: 4, data: gd.map(b => ({ x: b.dy, y: b.dv, c: b.code })) }] },
+    options: { interaction: { mode: "nearest", intersect: true }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.c}：剩餘 ${fmt(c.raw.x)} 年，偏離 ${fmt(c.raw.y, 1)} bp` } } },
+      scales: { x: { type: "linear", title: { display: true, text: "剩餘年限", color: css("--ink2") } }, y: { title: { display: true, text: "bp（正＝便宜）", color: css("--ink2") } } } } });
+  table("tbRvGov", [{ k: "債券", l: 1, f: b => b.code, h: b => `${b.code} ${b.name}` }, { k: "剩餘年限", f: b => b.dy, h: b => fmt(b.dy) }, { k: "成交殖利率", f: b => b.y, h: b => fmt(b.y, 4) },
+    { k: "理論殖利率", f: b => b.fv, h: b => fmt(b.fv, 4) }, { k: "偏離(bp)", f: b => b.dv, h: b => devTag(b.dv) }, { k: "面額(億)", f: b => b.face, h: b => yi(b.face) }],
+    gov, { sortI: 4, click: b => rvHistory(b.code) });
+  // 全部公債報價 vs 理論（最新一天）
+  const FG = FAIR.gov || [];
+  $("nFairGov").textContent = `${FAIR.date || "–"} 櫃買公債公平價格表（只提供最新一天）：等殖系統最後最佳買／賣報價與理論殖利率。偏離＝報價中間殖利率 − 理論殖利率（bp），正值＝相對便宜；沒有報價的券只列理論價。`;
+  const fg = FG.map(r => { const mid = r[3] != null && r[4] != null ? (r[3] + r[4]) / 2 : r[3] ?? r[4] ?? null; return { code: r[0], ttm: r[1], cpn: r[2], bid: r[3], ask: r[4], th: r[5], tp: r[6], mid, dv: dev(mid, r[5]) }; });
+  table("tbFairGov", [{ k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${BONDS[r.code] ? BONDS[r.code][1] : ""}` }, { k: "剩餘年限", f: r => r.ttm, h: r => fmt(r.ttm) }, { k: "票面", f: r => r.cpn, h: r => fmt(r.cpn, 3) },
+    { k: "買方殖利率", f: r => r.bid, h: r => fmt(r.bid, 4) }, { k: "賣方殖利率", f: r => r.ask, h: r => fmt(r.ask, 4) }, { k: "理論殖利率", f: r => r.th, h: r => fmt(r.th, 4) },
+    { k: "理論價", f: r => r.tp, h: r => fmt(r.tp, 4) }, { k: "偏離(bp)", f: r => r.dv, h: r => devTag(r.dv) }], fg, { sortI: 1, click: r => rvHistory(r.code) });
+  // 公司債參考利率
+  const zAt = t => last.z && last.z.length ? interp(ZT, last.z, t) : null;
+  chart("cCoCurve", { type: "line", data: { labels: CT.map(t => t < 1 ? Math.round(t * 12) + "個月" : t + "年"), datasets: [
+      ...RT.filter(r => last.c && last.c[r]).map((r, i) => ({ label: r, borderColor: s[i], data: last.c[r], pointRadius: 2 })),
+      { label: "公債零息", borderColor: css("--cmp"), borderDash: [6, 4], data: CT.map(zAt), pointRadius: 0 }] },
+    options: { scales: { y: { title: { display: true, text: "%", color: css("--ink2") } } } } });
+  table("tbCoCurve", [{ k: "年期", l: 1, f: r => r.t, h: r => r.t < 1 ? Math.round(r.t * 12) + " 個月" : r.t + " 年" }, ...RT.map(k => ({ k: k + " 利差", f: r => r[k], h: r => fmt(r[k], 1) }))],
+    CT.map((t, i) => Object.assign({ t }, ...RT.map(k => ({ [k]: last.c && last.c[k] && zAt(t) != null ? (last.c[k][i] - zAt(t)) * 100 : null })))).filter(r => [1, 2, 3, 5, 7, 10].includes(r.t)), { nosort: 1 });
+  // 公司債相對價值
+  table("tbRvCorp", [{ k: "債券", l: 1, f: b => b.code, h: b => `${b.code} ${b.name}${labels(b.code)}` }, { k: "評等", l: 1, f: b => b.rc || "–" }, { k: "剩餘年限", f: b => b.dy, h: b => fmt(b.dy) },
+    { k: "成交殖利率", f: b => b.y, h: b => fmt(b.y, 4) }, { k: "同評等參考", f: b => b.ref, h: b => fmt(b.ref, 4) }, { k: "相對同評等(bp)", f: b => b.dvRef, h: b => devTag(b.dvRef) },
+    { k: "Bloomberg 公平", f: b => b.fv, h: b => fmt(b.fv, 4) }, { k: "相對公平價(bp)", f: b => b.dvFv, h: b => devTag(b.dvFv) }, { k: "面額(億)", f: b => b.face, h: b => yi(b.face) }],
+    corp, { sortI: 5, rowCls: b => isSub(b.code) ? "sub" : "", click: b => rvHistory(b.code) });
+  if (rvCode) rvHistory(rvCode, true);
+}
+// 單一債券的偏離走勢（區間內每個成交日）
+function rvHistory(code, keep) {
+  rvCode = code; $("rvOne").style.display = "";
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 500), DIDX[curDate] + 1), s = S(), isG = kindOf(code) === "G";
+  const pts = days.map(d => { const rs = trades(d).filter(r => r.code === code); if (!rs.length) return null; const b = byBond(rs)[0];
+    const rc = !isG && ratingCurve(code), ref = rc && d.c && d.c[rc] ? interp(CT, d.c[rc], b.dy) : null;
+    return { d: d.d, fv: dev(b.y, b.fv), ref: dev(b.y, ref) }; }).filter(Boolean);
+  $("rvTitle").textContent = `${code} ${BONDS[code] ? BONDS[code][1] : ""}：偏離走勢（${pts.length} 個成交日）`;
+  const ds = isG ? [{ label: "相對櫃買理論殖利率", borderColor: s[0], data: pts.map(p => p.fv), pointRadius: 3 }]
+    : [{ label: "相對同評等參考利率", borderColor: s[6], data: pts.map(p => p.ref), pointRadius: 3 }, { label: "相對 Bloomberg 公平價", borderColor: s[2], data: pts.map(p => p.fv), pointRadius: 3 }];
+  chart("cRvOne", { type: "line", data: { labels: pts.map(p => p.d), datasets: ds }, options: { scales: { y: { title: { display: true, text: "bp（正＝便宜）", color: css("--ink2") } } } } });
+  if (!keep) $("rvOne").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---------- 9 附條件交易 ----------
+const RB_D = ["隔夜", "2-10", "11-20", "21-30", "31-60", "61-90", "91-180", ">180"];
+let repoT = "OR";
+// 多日彙總：同種類同天期的金額相加、利率以金額加權、最高最低取極值
+function repoAgg(days) {
+  const m = new Map();
+  for (const d of days) for (const [t, dd, hi, lo, av, amt] of d.r || []) {
+    const k = t + "|" + dd, x = m.get(k) || { t, d: dd, hi: null, lo: null, w: 0, wa: 0, amt: 0 };
+    x.amt += amt; if (av != null) { x.w += av * amt; x.wa += amt; }
+    if (hi != null) x.hi = x.hi == null ? hi : Math.max(x.hi, hi); if (lo != null) x.lo = x.lo == null ? lo : Math.min(x.lo, lo);
+    m.set(k, x);
+  }
+  for (const x of m.values()) x.avg = x.wa ? x.w / x.wa : null;
+  return m;
+}
+const repoGet = (m, t, d) => m.get(t + "|" + d) || { amt: 0, avg: null, hi: null, lo: null };
+const repoTot = (m, t) => { let a = 0, w = 0, wa = 0; for (const x of m.values()) if (x.t === t) { a += x.amt; if (x.avg != null) { w += x.avg * x.amt; wa += x.amt; } } return { amt: a, avg: wa ? w / wa : null }; };
+function renderRepo() {
+  const days = rangeDays(), last = days[days.length - 1], m = repoAgg(days);
+  $("period9").textContent = days.length > 1 ? `區間：${days[0].d} ～ ${last.d}，共 ${days.length} 個交易日（金額為區間合計）` : `資料日期：${last.d}`;
+  const OR = repoTot(m, "OR"), OV = repoTot(m, "OV"), ER = repoTot(m, "ER"), on = repoGet(m, "OR", "隔夜");
+  const recent = DAYS.slice(Math.max(0, DIDX[last.d] - 21), DIDX[last.d] + 1).map(d => repoAgg([d]));
+  $("kpi9").innerHTML = [["新作附買回", yi(OR.amt), "億元", "--s1", recent.map(x => repoTot(x, "OR").amt)],
+    ["附買回加權利率", OR.avg == null ? "–" : fmt(OR.avg, 3) + "%", "全部天期", "--s2", recent.map(x => repoTot(x, "OR").avg)],
+    ["隔夜附買回利率", on.avg == null ? "–" : fmt(on.avg, 3) + "%", `${yi(on.amt)} 億元`, "--s3", recent.map(x => repoGet(x, "OR", "隔夜").avg)],
+    ["新作附賣回", yi(OV.amt), OV.avg == null ? "億元" : `億元，加權 ${fmt(OV.avg, 3)}%`, "--s7", recent.map(x => repoTot(x, "OV").amt)],
+    ["附買回到期", yi(ER.amt), "億元", "--s4", recent.map(x => repoTot(x, "ER").amt)],
+    ["附買回淨增減", yi(OR.amt - ER.amt), "新作 − 到期，億元", "--accent", recent.map(x => repoTot(x, "OR").amt - repoTot(x, "ER").amt)]]
+    .map(([l, v, d, kc, sp]) => `<div class="kpi" style="--kc:var(${kc})"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div>${spark(sp, kc)}</div>`).join("");
+  const rows = RB_D.map(d => ({ d, a: repoGet(m, "OR", d), v: repoGet(m, "OV", d) }));
+  table("tbRepo", [{ k: "約定天數", l: 1, f: r => r.d, t: () => "合計" },
+    { k: "附買回 金額", f: r => r.a.amt, h: r => yi(r.a.amt), t: () => yi(OR.amt) }, { k: "附買回 加權", f: r => r.a.avg, h: r => fmt(r.a.avg, 3), t: () => fmt(OR.avg, 3) },
+    { k: "附買回 最高", f: r => r.a.hi, h: r => fmt(r.a.hi, 3) }, { k: "附買回 最低", f: r => r.a.lo, h: r => fmt(r.a.lo, 3) },
+    { k: "占比", f: r => OR.amt ? r.a.amt / OR.amt : null, h: r => OR.amt ? fmt(100 * r.a.amt / OR.amt, 1) + "%" : "–" },
+    { k: "附賣回 金額", f: r => r.v.amt, h: r => yi(r.v.amt), t: () => yi(OV.amt) }, { k: "附賣回 加權", f: r => r.v.avg, h: r => fmt(r.v.avg, 3), t: () => fmt(OV.avg, 3) }],
+    rows, { nosort: 1, total: 1 });
+  drawRepo();
+}
+function drawRepo() {
+  const days = rangeDays().length > 1 ? rangeDays() : DAYS.slice(Math.max(0, DIDX[curDate] - 250), DIDX[curDate] + 1), s = S();
+  const bk = monthly(days) ? [...groupBy(days, d => d.d.slice(0, 7))] : days.map(d => [d.d, [d]]), ms = bk.map(([, ds]) => repoAgg(ds));
+  chart("cRepoRate", { type: "line", data: { labels: bk.map(b => b[0]), datasets: ["隔夜", "2-10", "11-20", "21-30", "31-60"].map((d, i) => ({ label: d + " 天", borderColor: s[i], data: ms.map(m => { const v = repoGet(m, repoT, d).avg; return v == null ? null : +v.toFixed(4); }) })) },
+    options: { plugins: { title: { display: true, text: repoT === "OR" ? "附買回（RP）" : "附賣回（RS）" } } } });
+  $("nRepoVol").textContent = `新作附買回金額依天期堆疊，折線為新作附買回減到期，億元；${monthly(days) ? "每月合計" : "每日"}。`;
+  chart("cRepoVol", { type: "bar", data: { labels: bk.map(b => b[0]), datasets: [...["隔夜", "2-10", "11-20", "21-30", "31-60"].map((d, i) => ({ label: d + " 天", backgroundColor: s[i], data: ms.map(m => repoGet(m, "OR", d).amt / E8) })),
+      { type: "line", label: "淨增減", borderColor: css("--ink"), pointRadius: 0, data: ms.map(m => (repoTot(m, "OR").amt - repoTot(m, "ER").amt) / E8) }] },
+    options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "億元", color: css("--ink2") } } } } });
+}
+
+// ---------- 10 初級市場 ----------
+const PR = window.TB_PRIMARY || {}, AUC = PR.auctions || [];
+// 初級市場資料不存在時（例如抓取失敗）隱藏分頁，不顯示空白頁
+if (!AUC.length) document.querySelector('nav button[data-t="t10"]').style.display = "none";
+let aucT = "all";
+function renderPrimary() {
+  const today = new Date().toISOString().slice(0, 10);
+  $("period10").textContent = `資料更新：${PR.updated || "–"}；標售結果 ${AUC.length} 筆（${AUC.length ? AUC[0].date + " 起" : ""}）`;
+  // 即將標售：已公告＋季計畫（同期別同類型以公告為準）
+  const ann = (PR.upcoming || []).map(a => ({ ...a, auction: a.date, src: "已公告" }));
+  const key = a => a.series + (a.reopen ? "增" : "");
+  const plan = (PR.plan || []).filter(a => a.auction && a.auction >= today && !ann.some(x => key(x) === key(a))).map(a => ({ ...a, src: "季計畫" }));
+  const up = [...ann, ...plan].sort((a, b) => a.auction.localeCompare(b.auction));
+  table("tbUpcoming", [{ k: "標售日", l: 1, f: r => r.auction }, { k: "期別", l: 1, f: r => r.series }, { k: "年期", f: r => r.tenor, h: r => r.tenor + " 年" },
+    { k: "類型", l: 1, f: r => r.reopen ? "增額發行" : "新發行" }, { k: "發行日", l: 1, f: r => r.issue || "–" }, { k: "金額(億)", f: r => r.amount, h: r => fmt(r.amount, 0) },
+    { k: "來源", l: 1, f: r => r.src, h: r => r.src === "已公告" ? '<span class="tag esg">已公告</span>' : '<span class="tag">季計畫</span>' }], up, { nosort: 1 });
+  const lastA = AUC[AUC.length - 1], nx = up[0];
+  const prevSame = lastA ? [...AUC].reverse().find(a => a !== lastA && a.tenor === lastA.tenor) : null;
+  $("kpi10").innerHTML = [
+    ["下一場標售", nx ? nx.auction.slice(5) : "–", nx ? `${nx.tenor} 年 ${nx.series}${nx.reopen ? " 增額" : ""}，${fmt(nx.amount, 0)} 億` : "目前沒有公告", "--accent"],
+    ["最近一次標售", lastA ? lastA.date.slice(5) : "–", lastA ? `${lastA.tenor} 年 ${lastA.series}${lastA.reopen ? " 增額" : ""}` : "", "--s1"],
+    ["最高得標利率", lastA ? fmt(lastA.hi, 4) + "%" : "–", prevSame ? `上次同年期 ${fmt(prevSame.hi, 4)}%（${chgTxt((lastA.hi - prevSame.hi) * 100, 1)} bp）` : "", "--s2"],
+    ["投標倍數", lastA ? fmt(lastA.cover, 2) : "–", prevSame ? `上次同年期 ${fmt(prevSame.cover, 2)}` : "", "--s3"],
+    ["今年標售", AUC.filter(a => a.date.slice(0, 4) === today.slice(0, 4)).length + " 次", `${fmt(sum(AUC.filter(a => a.date.slice(0, 4) === today.slice(0, 4)), a => a.amount), 0)} 億元`, "--s7"]]
+    .map(([l, v, d, kc]) => `<div class="kpi" style="--kc:var(${kc})"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+  drawAuction();
+  const L = PR.listings || [];
+  table("tbListing", [{ k: "發行日", l: 1, f: r => r.issue_date, h: r => r.issue_date + (r.issue_date > today ? '<span class="tag esg">即將</span>' : "") },
+    { k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${r.name}${labels(r.code)}` }, { k: "種類", l: 1, f: r => r.kind },
+    { k: "發行人", l: 1, f: r => r.issuer && r.issuer !== "國內" ? r.issuer : "–" }, { k: "金額(億)", f: r => r.amount, h: r => r.amount ? yi(r.amount) : "–" },
+    { k: "票面(%)", f: r => r.coupon, h: r => fmt(r.coupon, 3) }, { k: "年期", f: r => +r.tenor || null, h: r => +r.tenor ? r.tenor + " 年" : "–" },
+    { k: "到期日", l: 1, f: r => r.mat || "–" }, { k: "ESG", l: 1, f: r => r.esg && r.esg.startsWith("是") ? r.esg.replace(/^是，?/, "") : "" }],
+    L.slice().sort((a, b) => b.issue_date.localeCompare(a.issue_date)), { click: r => BONDS[r.code] || INFO[r.code] ? showBond(r.code) : null });
+  const W = PR.whenissued || [];
+  const wsum = (w, j) => sum(w.days, d => d[j] || 0);
+  table("tbWhenIssued", [{ k: "債券", l: 1, f: w => w.code, h: w => `${w.code} ${w.name}` }, { k: "期間", l: 1, f: w => w.days.length ? w.days[0][0] : "", h: w => w.days.length ? `${w.days[0][0]} ～ ${w.days[w.days.length - 1][0]}` : "–" },
+    { k: "交易天數", f: w => w.days.length }, { k: "等殖 買/賣", f: w => wsum(w, 1), h: w => `${fmt(wsum(w, 1))} / ${fmt(wsum(w, 2))}` },
+    { k: "處所 買/賣", f: w => wsum(w, 3), h: w => `${fmt(wsum(w, 3))} / ${fmt(wsum(w, 4))}` }, { k: "合計買進", f: w => wsum(w, 5), h: w => fmt(wsum(w, 5)) },
+    ...["銀行", "票券", "證券", "保險"].map(k => ({ k: k + "淨部位", f: w => w.sector[k] ? (w.sector[k][0] || 0) + (w.sector[k][1] || 0) : null, h: w => w.sector[k] ? fmt((w.sector[k][0] || 0) + (w.sector[k][1] || 0)) : "–", cls: w => w.sector[k] ? chgCls((w.sector[k][0] || 0) + (w.sector[k][1] || 0)) : "" }))],
+    W.slice().sort((a, b) => (b.days.length ? b.days[b.days.length - 1][0] : "").localeCompare(a.days.length ? a.days[a.days.length - 1][0] : "")),
+    { click: (w, tr) => toggleDetail(tr, `<div class="tw" style="max-height:300px"><table><thead><tr><th class="l">日期</th><th>等殖買進</th><th>等殖賣出</th><th>處所買進</th><th>處所賣出</th><th>合計買進</th><th>合計賣出</th><th>淨部位</th></tr></thead><tbody>${w.days.map(d => `<tr><td class="l">${d[0]}</td>${d.slice(1).map(x => `<td>${fmt(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) });
+}
+function drawAuction() {
+  const s = S(), T = [2, 5, 10, 20, 30], A = AUC.filter(a => aucT === "all" || a.tenor === +aucT);
+  const lab = [...new Set(A.map(a => a.date))];
+  chart("cAucRate", { type: "line", data: { labels: lab, datasets: T.filter(t => aucT === "all" || t === +aucT).map((t, i) => ({ label: t + " 年", borderColor: s[T.indexOf(t)], pointRadius: 3, data: lab.map(d => (A.find(a => a.date === d && a.tenor === t) || {}).hi ?? null) })) },
+    options: { plugins: { title: { display: true, text: "最高得標利率（%）" } } } });
+  chart("cAucCover", { type: "bar", data: { labels: A.map(a => a.date), datasets: [{ label: "投標倍數", backgroundColor: s[0], data: A.map(a => a.cover) }] },
+    options: { plugins: { title: { display: true, text: "投標倍數" }, legend: { display: false } } } });
+  table("tbAuction", [{ k: "標售日", l: 1, f: a => a.date }, { k: "期別", l: 1, f: a => a.series, h: a => a.series + (a.reopen ? '<span class="tag">增額</span>' : "") }, { k: "年期", f: a => a.tenor },
+    { k: "發行額", f: a => a.amount, h: a => fmt(a.amount, 0) }, { k: "票面", f: a => a.coupon, h: a => fmt(a.coupon, 3) },
+    { k: "最高", f: a => a.hi, h: a => fmt(a.hi, 4) }, { k: "加權平均", f: a => a.wavg, h: a => fmt(a.wavg, 4) }, { k: "最低", f: a => a.lo, h: a => fmt(a.lo, 4) },
+    { k: "投標倍數", f: a => a.cover, h: a => fmt(a.cover, 2) }, ...["銀行", "證券", "票券", "保險"].map(k => ({ k: k + "%", f: a => a.sector ? a.sector[k] : null, h: a => a.sector ? fmt(a.sector[k], 1) : "–" }))],
+    A.slice().reverse(), { click: a => { const c = Object.keys(BONDS).find(c => BONDS[c][0] === "G" && c[0] === "A" && BONDS[c][3] === a.issue_date); if (c) showBond(c); } });
+}
+
+// ---------- 4 發行/到期 ----------
+let issK = "all", matK = "all";
+const tenorBucket = t => { const n = parseFloat(t); return isNaN(n) ? "無到期日" : n <= 2 ? "2年以下" : n <= 5 ? "3–5年" : n <= 7 ? "6–7年" : n <= 10 ? "8–10年" : "10年以上"; };
+const T_B = ["2年以下", "3–5年", "6–7年", "8–10年", "10年以上", "無到期日"];
+function yearsBack() { const y = +curDate.slice(0, 4); return [y - 4, y - 3, y - 2, y - 1, y]; }
+function renderIssue() {
+  const s = S(), yrs = yearsBack();
+  // 發行紀錄 [代號, 種類, 發行月, 金額, 原始年期]，增額發行各自一筆
+  const iss = TB_BONDS.issues.filter(r => yrs.includes(+r[2].slice(0, 4)) && r[2] <= curDate.slice(0, 7));
+  const ds = issK === "all"
+    ? ["G", "C", "F"].map((k, i) => ({ label: KIND[k], backgroundColor: s[i], data: yrs.map(y => sum(iss.filter(r => r[1] === k && +r[2].slice(0, 4) === y), r => r[3]) / E8) }))
+    : T_B.map((t, i) => ({ label: t, backgroundColor: s[i], data: yrs.map(y => sum(iss.filter(r => r[1] === issK && +r[2].slice(0, 4) === y && tenorBucket(r[4]) === t), r => r[3]) / E8) })).filter(d => d.data.some(v => v));
+  chart("cIss", { type: "bar", data: { labels: yrs.map(String), datasets: ds }, options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "億元", color: css("--ink2") } } } } });
+  yearTable("tbIss", yrs, ds, y => listBonds("outIssYear", `${y} 年發行`, iss.filter(r => +r[2].slice(0, 4) === y && (issK === "all" || r[1] === issK)).map(r => ({ c: r[0], amt: r[3], d: r[2] })), "發行月", "發行(億)"));
+  const y0 = +TB_BONDS.outMonth.slice(0, 4), my = [y0, y0 + 1, y0 + 2, y0 + 3, y0 + 4];
+  $("nMat").textContent = `依 ${TB_BONDS.outMonth} 流通在外餘額月報，分期還本依還本敘述拆分；無到期日債券不計。億元。`;
+  const flows = Object.entries(AMORT).flatMap(([c, a]) => a.map(([m, v]) => ({ c, k: BONDS[c] ? BONDS[c][0] : kindOf(c), y: +m.slice(0, 4), v, t: BONDS[c] ? tenorBucket(BONDS[c][5]) : "" })));
+  const mds = matK === "all"
+    ? ["G", "C", "F"].map((k, i) => ({ label: KIND[k], backgroundColor: s[i], data: my.map(y => sum(flows.filter(f => f.k === k && f.y === y), f => f.v) / E8) }))
+    : T_B.map((t, i) => ({ label: "原始 " + t, backgroundColor: s[i], data: my.map(y => sum(flows.filter(f => f.k === matK && f.y === y && f.t === t), f => f.v) / E8) })).filter(d => d.data.some(v => v));
+  chart("cMat", { type: "bar", data: { labels: my.map(String), datasets: mds }, options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "億元", color: css("--ink2") } } } } });
+  yearTable("tbMat", my, mds, y => listBonds("outMatYear", `${y} 年到期`, Object.entries(AMORT).flatMap(([c, a]) => a.filter(([m]) => +m.slice(0, 4) === y).map(([m, v]) => ({ c, amt: v, d: m })))
+    .filter(r => matK === "all" || (BONDS[r.c] ? BONDS[r.c][0] : kindOf(r.c)) === matK), "還本月", "還本(億)"));
+  renderOut();
+  // 保證銀行
+  const banks = [...new Set(Object.values(INFO).filter(i => i.bank_guaranteed).map(i => i.guarantor[0]))].sort();
+  const sel = $("qBank"), keep = sel.value;
+  sel.innerHTML = '<option value="">選擇保證銀行…</option>' + banks.map(b => `<option ${b === keep ? "selected" : ""}>${b}</option>`).join("");
+  drawBank();
+}
+// 年度 × 系列的資料表，點列執行 onYear
+function yearTable(id, yrs, ds, onYear) {
+  const rows = yrs.map((y, i) => ({ y, v: ds.map(d => d.data[i] || 0) }));
+  table(id, [{ k: "年度", l: 1, f: r => r.y, t: () => "合計" }, ...ds.map((d, j) => ({ k: d.label, f: r => r.v[j], h: r => fmt(r.v[j]), t: rs => fmt(sum(rs, r => r.v[j])) })),
+    { k: "合計", f: r => sum(r.v, x => x), h: r => fmt(sum(r.v, x => x)), t: rs => fmt(sum(rs, r => sum(r.v, x => x))) }], rows, { nosort: 1, total: 1, click: r => onYear(r.y) });
+}
+// 列出債券清單（點年度後）
+function listBonds(id, title, items, dLabel, aLabel) {
+  $(id).innerHTML = `<h3 class="sub-h">${title}：${new Set(items.map(r => r.c)).size} 檔，${yi(sum(items, r => r.amt))} 億元</h3><div class="tw" id="${id}T" style="max-height:420px"></div>`;
+  table(id + "T", [{ k: "債券", l: 1, f: r => r.c, h: r => `${r.c} ${BONDS[r.c] ? BONDS[r.c][1] : ""}${labels(r.c)}` }, { k: "種類", l: 1, f: r => KIND[BONDS[r.c] ? BONDS[r.c][0] : kindOf(r.c)] },
+    { k: dLabel, l: 1, f: r => r.d }, { k: "票面(%)", f: r => BONDS[r.c] ? BONDS[r.c][2] : null, h: r => BONDS[r.c] ? fmt(BONDS[r.c][2], 3) : "–" }, { k: "原始年期", f: r => BONDS[r.c] ? parseFloat(BONDS[r.c][5]) : null, h: r => BONDS[r.c] ? BONDS[r.c][5] : "" },
+    { k: aLabel, f: r => r.amt, h: r => yi(r.amt) }], items.sort((a, b) => b.amt - a.amt), { click: r => showBond(r.c), sortI: 5 });
+  $(id).scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+// 流通在外餘額結構：種類 × 剩餘年限
+function renderOut() {
+  const live = Object.entries(BONDS).filter(([, b]) => b[7] > 0 && b[0] !== "X"), ref = new Date(TB_BONDS.outMonth + "-28");
+  const rem = b => b[4] ? (new Date(b[4]) - ref) / 3.156e10 : null;
+  const RT = ["1 年內", "1–3 年", "3–5 年", "5–10 年", "10 年以上", "無到期日"];
+  const bucket = b => { const r = rem(b); return r == null ? "無到期日" : r < 1 ? "1 年內" : r < 3 ? "1–3 年" : r < 5 ? "3–5 年" : r < 10 ? "5–10 年" : "10 年以上"; };
+  $("nOut").textContent = `依 ${TB_BONDS.outMonth} 流通在外餘額月報，按剩餘年限分組，億元。`;
+  table("tbOut", [{ k: "剩餘年限", l: 1, f: r => r, t: () => "合計" }, ...["G", "C", "F"].map(k => ({ k: KIND[k], f: r => sum(live.filter(([, b]) => b[0] === k && bucket(b) === r), ([, b]) => b[7]), h: r => yi(sum(live.filter(([, b]) => b[0] === k && bucket(b) === r), ([, b]) => b[7])), t: () => yi(sum(live.filter(([, b]) => b[0] === k), ([, b]) => b[7])) })),
+    { k: "合計", f: r => sum(live.filter(([, b]) => bucket(b) === r), ([, b]) => b[7]), h: r => yi(sum(live.filter(([, b]) => bucket(b) === r), ([, b]) => b[7])), t: () => yi(sum(live, ([, b]) => b[7])) }], RT, { nosort: 1, total: 1 });
+}
+const QUICK = [["台積電", "2330"], ["台電", "台灣電力"], ["中油", "台灣中油"], ["鴻海", "2317"], ["中鋼", "2002"], ["富邦金", "富邦金融"]];
+function issuerSearch() {
+  const q = $("qIssuer").value.trim(); if (!q) { $("outIssuer").innerHTML = ""; return; }
+  const hit = (c, b) => b[1].includes(q) || (INFO[c] && ((INFO[c].full_name || "").includes(q) || (INFO[c].issuer || "").includes(q) || INFO[c].stock === q));
+  const hits = Object.entries(BONDS).filter(([c, b]) => hit(c, b)), codes = new Set(hits.map(([c]) => c));
+  const out = hits.filter(([, b]) => b[7]), names = [...new Set(hits.map(([c]) => INFO[c] && INFO[c].issuer).filter(Boolean))];
+  const yrs = yearsBack(), y0 = +TB_BONDS.outMonth.slice(0, 4), my = [y0, y0 + 1, y0 + 2, y0 + 3, y0 + 4], s = S();
+  const iss = TB_BONDS.issues.filter(r => codes.has(r[0]) && yrs.includes(+r[2].slice(0, 4)));
+  const flows = [...codes].flatMap(c => (AMORT[c] || []).map(([m, v]) => ({ c, y: +m.slice(0, 4), v, d: m, t: tenorBucket(BONDS[c][5]) })));
+  $("outIssuer").innerHTML = `<p class="note">${names.length ? names.slice(0, 3).join("、") + (names.length > 3 ? " 等" : "") + "：" : ""}符合 ${hits.length} 檔，流通在外 ${out.length} 檔，餘額 <b>${yi(sum(out, ([, b]) => b[7]))}</b> 億元。點圖表下方年度列出債券，點債券看基本資料。</p>
+    <div class="grid2"><div><div class="chartbox"><canvas id="cCoIss"></canvas></div><div class="tw" id="tbCoIss"></div></div><div><div class="chartbox"><canvas id="cCoMat"></canvas></div><div class="tw" id="tbCoMat"></div></div></div>
+    <div id="outCoYear"></div><h3 class="sub-h">全部債券</h3><div class="tw" id="tbIssuer" style="max-height:420px"></div>`;
+  const dsI = T_B.map((t, i) => ({ label: t, backgroundColor: s[i], data: yrs.map(y => sum(iss.filter(r => +r[2].slice(0, 4) === y && tenorBucket(r[4]) === t), r => r[3]) / E8) })).filter(d => d.data.some(v => v));
+  const dsM = T_B.map((t, i) => ({ label: t, backgroundColor: s[i], data: my.map(y => sum(flows.filter(f => f.y === y && f.t === t), f => f.v) / E8) })).filter(d => d.data.some(v => v));
+  chart("cCoIss", { type: "bar", data: { labels: yrs.map(String), datasets: dsI }, options: { plugins: { title: { display: true, text: "過去 5 年發行（依原始年期，億元）" } }, scales: { x: { stacked: true }, y: { stacked: true } } } });
+  chart("cCoMat", { type: "bar", data: { labels: my.map(String), datasets: dsM }, options: { plugins: { title: { display: true, text: "未來 5 年到期（依原始年期，億元）" } }, scales: { x: { stacked: true }, y: { stacked: true } } } });
+  yearTable("tbCoIss", yrs, dsI, y => listBonds("outCoYear", `${y} 年發行`, iss.filter(r => +r[2].slice(0, 4) === y).map(r => ({ c: r[0], amt: r[3], d: r[2] })), "發行月", "發行(億)"));
+  yearTable("tbCoMat", my, dsM, y => listBonds("outCoYear", `${y} 年到期`, flows.filter(f => f.y === y).map(f => ({ c: f.c, amt: f.v, d: f.d })), "還本月", "還本(億)"));
+  table("tbIssuer", [{ k: "債券", l: 1, f: ([c]) => c, h: ([c, b]) => `${c} ${b[1]}${labels(c)}` }, { k: "票面", f: ([, b]) => b[2], h: ([, b]) => fmt(b[2], 3) }, { k: "發行日", l: 1, f: ([, b]) => b[3] },
+    { k: "到期日", l: 1, f: ([, b]) => b[4] || "無到期日" }, { k: "發行(億)", f: ([, b]) => b[6], h: ([, b]) => yi(b[6]) }, { k: "餘額(億)", f: ([, b]) => b[7], h: ([, b]) => b[7] ? yi(b[7]) : "–" }],
+    hits.sort((a, b) => b[1][3].localeCompare(a[1][3])), { click: ([c]) => showBond(c) });
+}
+function drawBank() {
+  const b = $("qBank").value; if (!b) { $("outBank").innerHTML = ""; return; }
+  const rows = Object.entries(INFO).filter(([, i]) => i.bank_guaranteed && i.guarantor[0] === b);
+  table("outBank", [{ k: "債券", l: 1, f: ([c]) => c, h: ([c]) => `${c} ${BONDS[c] ? BONDS[c][1] : ""}` }, { k: "發行人", l: 1, f: ([, i]) => i.issuer || "" }, { k: "到期日", l: 1, f: ([c]) => BONDS[c] ? BONDS[c][4] : "" },
+    { k: "餘額(億)", f: ([c]) => BONDS[c] ? BONDS[c][7] : null, h: ([c]) => BONDS[c] && BONDS[c][7] ? yi(BONDS[c][7]) : "–" }], rows, { click: ([c]) => showBond(c), total: 0 });
+}
+
+// ---------- 5 ESG ----------
+let esgK = "all";
+const ESG_T = ["綠色債券", "社會責任債券", "可持續發展債券", "可持續發展連結債券"];
+function renderEsg() {
+  const s = S(), yrs = yearsBack(), y0 = +TB_BONDS.outMonth.slice(0, 4), my = [y0, y0 + 1, y0 + 2, y0 + 3, y0 + 4];
+  const list = Object.entries(ESG).filter(([, e]) => esgK === "all" || e[0] === esgK);
+  const types = esgK === "all" ? ESG_T : [esgK];
+  chart("cEsgIss", { type: "bar", data: { labels: yrs.map(String), datasets: types.map(t => ({ label: t, backgroundColor: s[ESG_T.indexOf(t)], data: yrs.map(y => sum(list.filter(([, e]) => e[0] === t && +e[1].slice(0, 4) === y), ([, e]) => e[4] || 0)) })) },
+    options: { plugins: { title: { display: true, text: "發行金額（億元）", color: css("--ink2") } }, scales: { x: { stacked: true }, y: { stacked: true } } } });
+  chart("cEsgMat", { type: "bar", data: { labels: my.map(String), datasets: types.map(t => ({ label: t, backgroundColor: s[ESG_T.indexOf(t)], data: my.map(y => sum(list.filter(([c, e]) => e[0] === t).flatMap(([c]) => (AMORT[c] || []).filter(([m]) => +m.slice(0, 4) === y)), ([, v]) => v) / E8) })) },
+    options: { plugins: { title: { display: true, text: "到期金額（億元）", color: css("--ink2") } }, scales: { x: { stacked: true }, y: { stacked: true } } } });
+  const esgYear = (y, mat) => listBonds("outEsgYear", `ESG 債券 ${y} 年${mat ? "到期" : "發行"}`, mat
+      ? list.flatMap(([c]) => (AMORT[c] || []).filter(([m]) => +m.slice(0, 4) === y).map(([m, v]) => ({ c, amt: v, d: m })))
+      : list.filter(([, e]) => +e[1].slice(0, 4) === y).map(([c, e]) => ({ c, amt: (e[4] || 0) * E8, d: e[1] })), mat ? "還本月" : "發行日", mat ? "還本(億)" : "發行(億)");
+  yearTable("tbEsgIss", yrs, charts.cEsgIss.data.datasets, y => esgYear(y, false));
+  yearTable("tbEsgMat", my, charts.cEsgMat.data.datasets, y => esgYear(y, true));
+  const ex = $("exLocal").checked, rows = [];
+  for (const y of yrs.slice().reverse()) {
+    const m = groupBy(list.filter(([c, e]) => +e[1].slice(0, 4) === y && !(ex && c[0] === "H")), ([, e]) => e[2]);
+    [...m].map(([iss, a]) => ({ y, iss, amt: sum(a, ([, e]) => e[4] || 0), n: a.length })).sort((a, b) => b.amt - a.amt).slice(0, 5).forEach((r, i) => rows.push({ ...r, rank: i + 1 }));
+  }
+  table("tbEsgTop", [{ k: "年度", f: r => r.y }, { k: "排名", f: r => r.rank }, { k: "發行人", l: 1, f: r => r.iss }, { k: "檔數", f: r => r.n }, { k: "發行金額(億)", f: r => r.amt, h: r => fmt(r.amt) }], rows, { nosort: 1 });
+}
+
+// ---------- 6 券商排名 ----------
+const BK = TB_BROKER.months;
+let bkCode = null, bkPer = "12";
+function renderBroker() {
+  const sel = $("selBkMonth");
+  if (!sel.options.length) sel.innerHTML = BK.slice().reverse().map(m => `<option>${m.m}</option>`).join("");
+  const m = BK.find(x => x.m === sel.value) || BK[BK.length - 1];
+  const rows = m.r.map(r => ({ code: r[0], name: r[1], buy: r[2] + r[4] + r[6], sell: r[3] + r[5] + r[7] })).map(r => ({ ...r, net: r.buy - r.sell }));
+  const tot = sum(rows, r => r.buy + r.sell);
+  const cols = [{ k: "#", f: r => r.i }, { k: "券商", l: 1, f: r => r.name }, { k: "買進", f: r => r.buy, h: r => yi(r.buy) }, { k: "賣出", f: r => r.sell, h: r => yi(r.sell) }, { k: "買(賣)超", f: r => r.net, h: r => yi(r.net), cls: r => chgCls(r.net) },
+    { k: "市佔率", f: r => (r.buy + r.sell) / tot, h: r => fmt(100 * (r.buy + r.sell) / tot, 1) + "%" }];
+  const bs = $("selBroker");
+  if (!bs.options.length) { const all = new Map(); for (const x of BK) for (const r of x.r) all.set(r[0], r[1]);
+    bs.innerHTML = '<option value="">選擇券商…</option>' + [...all].sort((a, b) => a[1].localeCompare(b[1], "zh-Hant")).map(([c, n]) => `<option value="${c}">${n}（${c}）</option>`).join(""); }
+  const top = (a) => a.slice(0, 10).map((r, i) => ({ ...r, i: i + 1 }));
+  $("tbBkBuy").innerHTML = '<div id="bkb"></div>'; $("tbBkSell").innerHTML = '<div id="bks"></div>';
+  table("bkb", cols, top(rows.filter(r => r.net > 0).sort((a, b) => b.net - a.net)), { nosort: 1, click: r => showBroker(r.code) });
+  table("bks", cols, top(rows.filter(r => r.net < 0).sort((a, b) => a.net - b.net)), { nosort: 1, click: r => showBroker(r.code) });
+  $("bkb").insertAdjacentHTML("afterbegin", "<p class='note'>買超前 10 名</p>"); $("bks").insertAdjacentHTML("afterbegin", "<p class='note'>賣超前 10 名</p>");
+  if (bkCode) showBroker(bkCode);
+}
+function showBroker(code) {
+  bkCode = code; $("bkOne").style.display = ""; $("selBroker").value = code;
+  const ms = bkPer === "all" ? BK : bkPer === "ytd" ? BK.filter(m => m.m.slice(0, 4) === BK[BK.length - 1].m.slice(0, 4)) : BK.slice(-(+bkPer));
+  const rows = ms.map(m => { const r = m.r.find(x => x[0] === code); return r ? { m: m.m, name: r[1], buy: r[2] + r[4] + r[6], sell: r[3] + r[5] + r[7] } : { m: m.m, buy: 0, sell: 0 }; }).map(r => ({ ...r, net: r.buy - r.sell }));
+  const nm = (BK.flatMap(m => m.r).find(r => r[0] === code) || [, code])[1];
+  $("bkName").textContent = `${nm}（${code}）：月度買賣` + (rows.some(r => r.buy || r.sell) ? "" : "（這段期間沒有成交，可改選較長期間）");
+  const s = S();
+  chart("cBk", { type: "bar", data: { labels: rows.map(r => r.m), datasets: [{ label: "買進", backgroundColor: s[0], data: rows.map(r => r.buy / E8) }, { label: "賣出", backgroundColor: s[1], data: rows.map(r => -r.sell / E8) }, { type: "line", label: "買(賣)超", borderColor: css("--ink"), data: rows.map(r => r.net / E8), pointRadius: 2 }] },
+    options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: "億元（賣出以負值表示）", color: css("--ink2") } } } } });
+  table("tbBkOne", [{ k: "月份", l: 1, f: r => r.m }, { k: "買進", f: r => r.buy, h: r => yi(r.buy) }, { k: "賣出", f: r => r.sell, h: r => yi(r.sell) }, { k: "買(賣)超", f: r => r.net, h: r => yi(r.net), cls: r => chgCls(r.net) }],
+    rows.slice().reverse(), { total: 1, nosort: 1 });
+  const t = $("tbBkOne").querySelector("tr.total"); if (t) { const sb = sum(rows, r => r.buy), ss = sum(rows, r => r.sell); t.innerHTML = `<td class="l">合計</td><td>${yi(sb)}</td><td>${yi(ss)}</td><td class="${chgCls(sb - ss)}">${yi(sb - ss)}</td>`; }
+}
+
+// ---------- 7 成交明細 ----------
+let dtM = "all", dtK = "all", dtS = "all", dtRows = [];
+const MAXROWS = 1500;
+function renderDetail() {
+  const days = rangeDays(), q = $("qDt").value.trim().toUpperCase();
+  const kw = r => !q || r.code.includes(q) || r.name.toUpperCase().includes(q) || (INFO[r.code] && ((INFO[r.code].issuer || "").includes(q) || INFO[r.code].stock === q));
+  dtRows = days.flatMap(trades).filter(r => kw(r) && (dtM === "all" || r.m === dtM) && (dtK === "all" || r.k === dtK) && (dtS === "all" || (dtS === "sub" ? isSub(r.code) : !isSub(r.code) && isCb(r))));
+  const span = days.length > 1 ? `${days[0].d} ～ ${days[days.length - 1].d}` : days[0].d;
+  $("nDt").textContent = `${span}，共 ${dtRows.length.toLocaleString()} 筆，面額 ${yi(sum(dtRows))} 億元。${dtRows.length > MAXROWS ? `表格只顯示面額最大的 ${MAXROWS} 筆，匯出 CSV 為全部。` : ""}`;
+  const shown = dtRows.length > MAXROWS ? dtRows.slice().sort((a, b) => b.face - a.face).slice(0, MAXROWS) : dtRows;
+  table("tbDetail", [{ k: "日期", l: 1, f: r => r.d }, { k: "市場", l: 1, f: r => r.m, h: r => mktTag(r.m) }, { k: "種類", l: 1, f: r => KIND[r.k] }, { k: "債券", l: 1, f: r => r.code, h: r => `${r.code} ${r.name}${labels(r.code)}` },
+    { k: "剩餘年限", f: r => r.dy, h: r => fmt(r.dy) }, { k: "殖利率", f: r => r.y, h: r => fmt(r.y, 4) }, { k: "百元價", f: r => r.p, h: r => fmt(r.p, 4) },
+    { k: "利差(bp)", f: r => r.spr, h: r => fmt(r.spr) }, { k: "成交金額(億)", f: r => r.val, h: r => yi(r.val) }, { k: "面額(億)", f: r => r.face, h: r => yi(r.face) }],
+    shown, { sortI: 9, rowCls: r => isSub(r.code) ? "sub" : "", click: (r, tr) => toggleDetail(tr, bondInfoHtml(r.code)) });
+}
+function exportCsv() {
+  const h = ["日期", "市場", "種類", "代號", "名稱", "剩餘年限", "殖利率", "百元價", "利差bp", "成交金額", "成交面額", "次順位"];
+  const lines = [h.join(",")].concat(dtRows.map(r => [r.d, r.m === "E" ? "等殖" : "處所", KIND[r.k], r.code, r.name, r.dy, r.y, r.p, r.spr ?? "", r.val, r.face, isSub(r.code) ? "Y" : ""].join(",")));
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + lines.join("\n")], { type: "text/csv" })); a.download = `bond_trades_${rangeDays()[0].d}_${curDate}.csv`; a.click();
+}
+
+// ---------- 8 債券查詢 ----------
+function bondInfoHtml(c) {
+  const b = BONDS[c], i = INFO[c] || {}, e = ESG[c];
+  const kv = [["代號", c], ["名稱", b ? b[1] : ""], ["全名", i.full_name], ["發行人", i.issuer], ["種類", KIND[b ? b[0] : kindOf(c)]], ["票面利率", b && b[2] != null ? fmt(b[2], 3) + "%" : "浮動或未提供"],
+    ["發行日", b && b[3]], ["到期日", b ? (b[4] || "無到期日") : i.maturity], ["發行額", b ? yi(b[6]) + " 億元" : ""], ["餘額", b && b[7] ? yi(b[7]) + ` 億元（${TB_BONDS.outMonth}）` : ""],
+    ["還本方式", (b && b[8]) || i.redemption], ["擔保／順位", i.guarantee], ["保證機構", i.bank_guaranteed ? `${i.guarantor[0]}（${i.guarantor[1]} ${i.guarantor[2]}，${i.guarantor[3]}）` : ""],
+    ["債券評等", i.bond_rating && i.bond_rating[1] ? `${i.bond_rating[1]}（${i.bond_rating[0]}，${i.bond_rating[2]}）` : ""], ["發行人評等", i.issuer_rating && i.issuer_rating[1] ? `${i.issuer_rating[1]}（${i.issuer_rating[0]}，${i.issuer_rating[2]}）` : ""],
+    ["ESG", e ? `${e[0]}（${e[1]}）` : ""]].filter(([, v]) => v);
+  return `<dl class="info">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
+}
+function bondSearch() {
+  const q = $("qBond").value.trim().toUpperCase(); if (!q) { $("outBondList").innerHTML = ""; return; }
+  const all = Object.entries(BONDS).filter(([c, b]) => c.startsWith(q) || b[1].toUpperCase().includes(q)), hits = all.slice(0, 60);
+  if (hits.length === 1) return showBond(hits[0][0]);
+  $("outBondList").innerHTML = `<p class="note">符合 ${all.length} 檔${all.length > 60 ? "，只列前 60 檔，請輸入更精確的關鍵字" : ""}。</p><div class="tw" id="tbBondList" style="max-height:300px"></div>`;
+  table("tbBondList", [{ k: "債券", l: 1, f: ([c, b]) => c + " " + b[1] }, { k: "發行日", l: 1, f: ([, b]) => b[3] }, { k: "到期日", l: 1, f: ([, b]) => b[4] || "無到期日" }],
+    hits, { click: ([c]) => showBond(c), nosort: 1 });
+}
+function showBond(c) {
+  document.querySelector('nav button[data-t="t8"]').click();
+  $("qBond").value = c; $("outBondList").innerHTML = "";
+  const hist = DAYS.flatMap(d => trades(d).filter(r => r.code === c));
+  $("bondCard").style.display = ""; $("bondTitle").innerHTML = `${c} ${BONDS[c] ? BONDS[c][1] : (hist[0] || {}).name || ""}${labels(c)}`;
+  $("bondInfo").outerHTML = bondInfoHtml(c).replace('<dl class="info">', '<dl class="info" id="bondInfo">');
+  const s = S();
+  chart("cBond", { type: "line", data: { labels: [...new Set(hist.map(r => r.d))], datasets: [["E", "等殖", s[0]], ["O", "處所", s[2]]].map(([m, n, col]) => { const by = Object.fromEntries(hist.filter(r => r.m === m).map(r => [r.d, r.y])); return { label: n + "殖利率", borderColor: col, pointRadius: 3, showLine: false, data: [...new Set(hist.map(r => r.d))].map(d => by[d] ?? null) }; }) },
+    options: { plugins: { title: { display: true, text: `成交殖利率（%），共 ${hist.length} 筆`, color: css("--ink2") } } } });
+  const am = AMORT[c] || [], iss = INFO[c] && INFO[c].issuer, sib = iss ? Object.keys(INFO).filter(x => x !== c && INFO[x].issuer === iss && BONDS[x] && BONDS[x][7]) : [];
+  $("tbBondHist").innerHTML = (am.length ? `<h3 class="sub-h">未來還本（依 ${TB_BONDS.outMonth} 餘額）</h3><div class="tw"><table><thead><tr><th class="l">還本月</th><th>金額(億)</th></tr></thead><tbody>${am.map(([m, v]) => `<tr><td class="l">${m}</td><td>${yi(v)}</td></tr>`).join("")}</tbody></table></div>` : "")
+    + '<h3 class="sub-h">成交紀錄</h3>' + (hist.length ? tradeTable(hist) : '<p class="muted">2016-11 以來沒有成交紀錄</p>')
+    + (sib.length ? `<h3 class="sub-h">同發行人流通在外債券（${sib.length} 檔）</h3><div class="tw" id="tbSib"></div>` : "");
+  if (sib.length) table("tbSib", [{ k: "債券", l: 1, f: x => x, h: x => `${x} ${BONDS[x][1]}${labels(x)}` }, { k: "票面(%)", f: x => BONDS[x][2], h: x => fmt(BONDS[x][2], 3) }, { k: "到期日", l: 1, f: x => BONDS[x][4] || "無到期日" }, { k: "餘額(億)", f: x => BONDS[x][7], h: x => yi(BONDS[x][7]) }], sib, { click: x => showBond(x), sortI: 2 });
+}
+
+// ---------- 控制項 ----------
+const RENDER = { t1: renderOverview, t2: renderGov, t3: renderCb, t11: renderRV, t9: renderRepo, t10: renderPrimary, t4: renderIssue, t5: renderEsg, t6: renderBroker, t7: renderDetail, t8: () => {} };
+let curTab = "t1";
+const render = () => RENDER[curTab]();
+document.querySelectorAll("nav button").forEach(b => {
+  b.id = "tab-" + b.dataset.t; b.setAttribute("role", "tab"); b.setAttribute("aria-controls", "panel-" + b.dataset.t);
+  b.setAttribute("aria-selected", b.classList.contains("on"));
+});
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", x === b); });
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.id === "panel-" + b.dataset.t));
+  curTab = b.dataset.t; history.replaceState(null, "", "#" + curTab); render();
+});
+const dIn = $("selDate"); dIn.min = DAYS[0].d; dIn.max = DAYS[DAYS.length - 1].d; dIn.value = curDate;
+dIn.onchange = () => { curDate = nearestDay(dIn.value || dIn.max); dIn.value = curDate; render(); };
+$("selRange").onchange = e => { range = e.target.value; $("customBox").style.display = range === "custom" ? "" : "none"; if (range === "custom" && !$("dFrom").value) { $("dFrom").value = dayBefore(curDate, 30).d; $("dTo").value = curDate; } render(); };
+$("dFrom").onchange = $("dTo").onchange = render;
+$("bTheme").onclick = () => { const r = document.documentElement, light = r.dataset.theme !== "light"; light ? r.dataset.theme = "light" : delete r.dataset.theme; try { localStorage.setItem("tb-theme", light ? "light" : "dark"); } catch (e) {} render(); };
+try { if (localStorage.getItem("tb-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}
+Chart.defaults.font.family = '"IBM Plex Sans", "Noto Sans TC", sans-serif';
+Chart.defaults.font.size = 13;
+seg("segGovT", [["all", "全部年期"], ["1", "1年"], ["2", "2年"], ["5", "5年"], ["10", "10年"], ["20", "20年"], ["30", "30年"]], "all", v => { govT = v; drawGovTurn(); });
+seg("segGovM", [["all", "合計"], ["E", "等殖"], ["O", "處所"]], "all", v => { govM = v; drawGovTurn(); });
+seg("segBench", [["all", "全部"], ["2", "2年"], ["5", "5年"], ["10", "10年"], ["20", "20年"], ["30", "30年"]], [...benchSel], v => { benchSel = v; drawBench(); }, true);
+seg("segCbS", [["C", "公司債"], ["F", "金融債"]], ["C", "F"], v => { cbSeries = v; drawCbTrend(); }, true);
+seg("segCbT", [["all", "全部年期"], ...CB_T.map(t => [t, t])], "all", v => { cbT = v; drawCbTrend(); });
+seg("segCbM", [["all", "合計"], ["E", "等殖"], ["O", "處所"]], "all", v => { cbM = v; drawCbTurn(); });
+seg("segRepoT", [["OR", "附買回（RP）"], ["OV", "附賣回（RS）"]], "OR", v => { repoT = v; drawRepo(); });
+seg("segAucT", [["all", "全部年期"], ["2", "2年"], ["5", "5年"], ["10", "10年"], ["20", "20年"], ["30", "30年"]], "all", v => { aucT = v; drawAuction(); });
+seg("segIss", [["all", "全部"], ["G", "公債"], ["F", "金融債"], ["C", "公司債"]], "all", v => { issK = v; renderIssue(); });
+seg("segMat", [["all", "全部"], ["G", "公債"], ["F", "金融債"], ["C", "公司債"]], "all", v => { matK = v; renderIssue(); });
+seg("segEsg", [["all", "全部"], ...ESG_T.map(t => [t, t.replace("債券", "")])], "all", v => { esgK = v; renderEsg(); });
+seg("segBk", [["3", "近 3 個月"], ["6", "近 6 個月"], ["ytd", "今年以來"], ["12", "近 12 個月"], ["24", "近 24 個月"], ["36", "近 36 個月"], ["60", "近 60 個月"], ["all", "全部"]], "12", v => { bkPer = v; if (bkCode) showBroker(bkCode); });
+seg("segDtM", [["all", "全部市場"], ["E", "等殖"], ["O", "處所"]], "all", v => { dtM = v; renderDetail(); });
+seg("segDtK", [["all", "全部種類"], ["G", "公債"], ["C", "公司債"], ["F", "金融債"]], "all", v => { dtK = v; renderDetail(); });
+seg("segDtS", [["all", "全部順位"], ["sub", "只看次順位"], ["senior", "非次順位"]], "all", v => { dtS = v; renderDetail(); });
+$("bCsv").onclick = exportCsv;
+$("qDt").oninput = () => { clearTimeout(window._dt); window._dt = setTimeout(renderDetail, 250); };
+$("selBroker").onchange = e => e.target.value && showBroker(e.target.value);
+$("quickIssuer").innerHTML = QUICK.map(([n, q]) => `<button type="button" data-q="${q}">${n}</button>`).join("");
+$("quickIssuer").querySelectorAll("button").forEach(b => b.onclick = () => { $("qIssuer").value = b.dataset.q; issuerSearch(); });
+// 列印：依選擇的方向設定 A4
+$("bPrint").onclick = () => { let st = $("pageSize"); if (!st) { st = document.createElement("style"); st.id = "pageSize"; document.head.appendChild(st); }
+  st.textContent = `@page { size: A4 ${$("selOrient").value}; margin: 12mm; }`; window.print(); };
+// 每張卡片右上角加「CSV」：有表格就匯出表格，沒有就匯出圖表資料
+const DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3"/></svg>';
+function csvOfCard(card) {
+  const esc = v => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  const t = card.querySelector("table");
+  if (t) return [...t.querySelectorAll("tr")].filter(tr => !tr.classList.contains("detail")).map(tr => [...tr.children].map(td => esc(td.innerText.replace(/\s+/g, " ").replace(/[▲▼]/g, m => m === "▼" ? "-" : "").trim())).join(","));
+  const cv = card.querySelector("canvas"), c = cv && charts[cv.id];
+  if (!c) return null;
+  return [["", ...c.data.datasets.map(d => d.label)].map(esc).join(",")].concat(c.data.labels.map((l, i) => [esc(String(l)), ...c.data.datasets.map(d => d.data[i] ?? "")].join(",")));
+}
+document.querySelectorAll(".card > h2").forEach(h => {
+  const b = document.createElement("button"); b.type = "button"; b.className = "xbtn"; b.innerHTML = DL + "CSV"; b.title = "下載這個區塊的資料（CSV）"; b.setAttribute("aria-label", "下載 " + h.textContent + " 的資料（CSV）");
+  b.onclick = () => { const lines = csvOfCard(h.closest(".card")); if (!lines) return alert("這個區塊目前沒有資料可以匯出");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv" })); a.download = `${h.childNodes[0].textContent.trim()}_${curDate}.csv`; a.click(); };
+  h.appendChild(b);
+});
+$("selBkMonth").onchange = renderBroker;
+$("exLocal").onchange = renderEsg;
+$("qIssuer").oninput = issuerSearch; $("qBank").onchange = drawBank; $("qBond").oninput = bondSearch;
+$("upd").textContent = `更新：${TB_META.updated}`;
+const lag = (new Date() - new Date(DAYS[DAYS.length - 1].d)) / 864e5;
+if (lag > 6) { $("warn").style.display = "block"; $("warn").textContent = `最新資料日期為 ${DAYS[DAYS.length - 1].d}，可能尚未更新。`; }
+const hashTab = document.querySelector(`nav button[data-t="${location.hash.slice(1)}"]`);
+hashTab ? hashTab.click() : render();
+</script>
+</body>
+</html>
